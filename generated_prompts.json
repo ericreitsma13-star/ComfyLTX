@@ -1,0 +1,56 @@
+{
+  "model": "meta-llama/llama-3.3-70b-instruct",
+  "style": "cinematic",
+  "prompts": [
+    {
+      "id": "rainy_night_alley",
+      "title": "Rainy Night Alley",
+      "prompt": "A lone figure in a trench coat walks away from the camera, illuminated by a single, soft, warm neon sign, casting long shadows across the wet cobblestone alley, with steam rising from a manhole cover, surrounded by a cool, rainy mist, reflecting off the slick pavement, with rough, weathered brick walls and deep, dark alleyways, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "abandoned_asylum",
+      "title": "Abandoned Asylum Corridor",
+      "prompt": "A single chair stands at the far end of a long, peeling-paint corridor, illuminated by a harsh, cool light emanating from a broken window, casting deep shadows and accentuating the debris-scattered tile floor, damp stains, and cobwebs clinging to the walls, with a thick atmosphere of mist and humidity, rough textures of worn wood and chipped tile, shot with a wide-angle lens and a low lighting ratio, emphasizing the sense of desolation and neglect, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "lighthouse_storm",
+      "title": "Lighthouse in Storm",
+      "prompt": "A lone lighthouse stands at the edge of a rocky cliff, its beacon casting a strong, warm light through the thick fog and rain, with a hard, cool light from a lightning strike illuminating the dark, churning water below, the rough, weathered stone and rusty metal textures of the lighthouse evident through the spray and wind, set against a dramatic, deep blue sky with a low depth of field, high contrast, and muted color grading, with a wide focal length to emphasize the isolation, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "noir_detective",
+      "title": "Noir Detective Office",
+      "prompt": "A lone desk lamp casts a harsh, warm glow on a cluttered desk, with venetian blind shadows slicing across the scene, while cigarette smoke wafts through the beams of light, amidst a fog of humidity, with textures of worn wood and rough, peeling paint, set against a backdrop of deep blues and cold greys, with a shallow depth of field, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "burial_fog",
+      "title": "Burial in the Fog",
+      "prompt": "A lone figure stands at the edge of an open grave, shrouded in a soft, cool mist, illuminated by a faint, warm dawn light, casting long shadows across the wet, grassy terrain, with rough, weathered headstones and bare tree silhouettes emerging from the thick fog, set against a muted grey-green palette, with the distant church spire looming in the background, shot with a wide-angle lens, shallow depth of field, and a low lighting ratio, emphasizing the somber mood, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "subway_abandoned",
+      "title": "Abandoned Subway Station",
+      "prompt": "A lone, flickering fluorescent light casts an eerie glow on the shattered tile walls of a decaying underground subway station, with a shallow depth of field, cool color grading, and a high lighting ratio, amidst a thick atmosphere of mist and humidity, where water drips from the ceiling onto the worn, rough concrete platform, and graffiti-covered columns stand like sentinels, with a single abandoned train car disappearing into the darkness, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "forest_firelight",
+      "title": "Forest Campfire at Dusk",
+      "prompt": "A lone figure sits beside a small campfire, illuminated by the warm, golden glow of flames, with a soft, feathered edge, casting long shadows across the rough, weathered tree trunks, as smoke rises into the dark, misty canopy above, a dark tent silhouette stands in the background, with deep blue, desaturated shadows beyond the fire's reach, shot with a shallow depth of field, 50mm focal length, and a low lighting ratio, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "catacombs",
+      "title": "The Catacombs",
+      "prompt": "A single, flickering torch casts a warm, golden glow on the damp stone floor, its hard light dancing across the stacked human skulls and bones that line the narrow tunnel, surrounded by a cool, dark atmosphere filled with the mist of dampness, with rough, weathered textures of arched brick above, and deep shadows that stretch and twist in the darkness, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "drowned_forest",
+      "title": "Drowned Forest",
+      "prompt": "A lone rowboat, half-submerged in the still black water, is illuminated by a soft, cool twilight glow, casting long shadows across the skeletal trees standing like sentinels in the mist-shrouded forest, the purple-grey sky above reflected barely in the water's surface, with the mist hovering just above the waterline, creating an eerie, atmospheric depth, and the rough, weathered wood of the boat's hull glistens with dew, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    },
+    {
+      "id": "urban_rooftop",
+      "title": "Rooftop at Dawn",
+      "prompt": "A lone figure stands at the edge of a rooftop, illuminated by a soft, cool dawn light with a low angle of incidence, casting deep shadows across the worn, weathered concrete. The city below is shrouded in a thin layer of morning fog, with muted blue-grey tones and the faint glow of city lights still lingering. The atmosphere is heavy with mist, and the rough texture of the rooftop's gravel and peeling paint is visible in the foreground. Shot with a wide-angle lens and a shallow depth of field, using a high contrast color grading and a low lighting ratio, cinematic, photorealistic, moody, low-key lighting, 8K, shot on 35mm film"
+    }
+  ]
+}

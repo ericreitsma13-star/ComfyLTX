@@ -1,0 +1,25 @@
+{
+  "name": "Tattoo Design Studio",
+  "version": "1.0",
+  "description": "Traditional and neo-traditional tattoo flash — bold lines, limited palettes, classic motifs",
+  "base_model": "SDXL",
+  "loras": [
+    {
+      "file": "tattoo-design.safetensors",
+      "name": "tattoo",
+      "weight": 0.85,
+      "trigger_words": ["tattoo flash", "bold lines", "traditional tattoo"]
+    }
+  ],
+  "prompts": [
+    "tattoo flash of a dagger through a rose, bold black lines, american traditional, muted colors",
+    "tattoo flash of a compass and anchor, neo-traditional, stippled shading, navy and gold",
+    "tattoo flash of a wolf head, geometric, dotwork, black and grey, fine line"
+  ],
+  "settings": {
+    "width": 768,
+    "height": 1024,
+    "steps": 25,
+    "cfg": 7.0
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "author": "Mike Mignola (style tribute)",
+  "model_hint": "Llama 3.3 70B Instruct via OpenRouter",
+  "scenes": [
+    {
+      "id": "demon_hunter",
+      "title": "Demon Hunter in Ruined Cathedral",
+      "description": "A lone hunter with a long coat and shotgun facing a horned demon in the nave of a ruined gothic cathedral, shattered stained glass, moonlight beams through broken vaults."
+    },
+    {
+      "id": "cemetery_procession",
+      "title": "Ghostly Procession in the Cemetery",
+      "description": "A procession of translucent ghost figures winding through an overgrown Victorian cemetery at dusk, wrought iron gates, gnarled trees, fog hugging the ground."
+    },
+    {
+      "id": "vampire_castle",
+      "title": "Vampire in Gothic Castle",
+      "description": "A pale vampire in a high-collared coat standing on a castle balcony under a blood-red moon, bat-wing shadows, spires reaching into storm clouds."
+    },
+    {
+      "id": "forest_monster",
+      "title": "Folklore Monster in Dark Forest",
+      "description": "A towering antlered creature made of twisted wood and moss emerging from the mist between ancient trees, will-o'-wisps floating in the dark."
+    },
+    {
+      "id": "cosmic_temple",
+      "title": "Cosmic Horror in Ancient Temple",
+      "description": "A massive tentacled entity with glowing eyes rising behind an altar in a crumbling stone temple, strange symbols carved into pillars, eldritch green glow."
+    },
+    {
+      "id": "werewolf_moon",
+      "title": "Werewolf Under Full Moon",
+      "description": "A werewolf mid-transformation on a rocky hillside, back arched, claws extended, full moon blazing through torn clouds, dead tree silhouettes."
+    },
+    {
+      "id": "witch_tower",
+      "title": "Witch's Coven in Storm Tower",
+      "description": "Three hooded figures gathered around a brazier in a ruined stone tower during a thunderstorm, lightning through arrow slits, shadowy familiars perched in rafters."
+    },
+    {
+      "id": "devils_bargain",
+      "title": "The Devil's Bargain",
+      "description": "A sharply-dressed devil with a thin smile and elongated shadow leaning across a desk toward a desperate man, candlelight casting huge distorted shadows on the wall, occult symbols carved into the wood."
+    },
+    {
+      "id": "hellboy_gate",
+      "title": "Hellboy at the Gate",
+      "description": "A large horned dark figure with a heavy stone hand standing before a massive ornate stone gate that glows with fiery runes, tendrils of smoke, ancient statues on either side."
+    },
+    {
+      "id": "corpse_bridge",
+      "title": "The Corpse Bridge",
+      "description": "A decrepit stone bridge spanning a chasm of mist, skeletal figures standing motionless along its length, a lone traveler with a lantern halfway across, skull-topped pillars."
+    },
+    {
+      "id": "fisherman_drowned",
+      "title": "The Drowned Fisherman",
+      "description": "A gaunt fisherman in rain gear hauling a net filled with tangled seaweed and bones from black water, his boat lantern the only light, massive shapes moving beneath the surface."
+    },
+    {
+      "id": "clockwork_devil",
+      "title": "Clockwork Devil",
+      "description": "A mechanical demon constructed of tarnished brass and rusted iron, gears exposed through its ribcage, steam rising from its joints, standing in a Victorian workshop filled with strange machines."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Product Photography Studio",
+  "version": "1.0",
+  "description": "Clean, commercial product photography — white background, studio lighting",
+  "base_model": "SDXL",
+  "loras": [
+    {
+      "file": "product-photo-studio.safetensors",
+      "name": "product-photo",
+      "weight": 0.9,
+      "trigger_words": ["product photo", "studio lighting", "white background"]
+    }
+  ],
+  "prompts": [
+    "product photo of a premium glass perfume bottle, studio lighting, white background, reflections, sharp focus",
+    "product photo of artisan ceramic coffee mug, warm studio light, clean white background, minimalist",
+    "product photo of leather wallet, opened, studio lighting, white background, detailed texture, commercial"
+  ],
+  "settings": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 25,
+    "cfg": 7.5
+  }
+}

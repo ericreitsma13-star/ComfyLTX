@@ -1,0 +1,17 @@
+================================================
+LTX-2.3 19B Split Pipeline
+Temp:  /opt/comfy-toolbox/tmp/ltx23_19b_split
+Skip:  none
+Args:  --prompt A serene Japanese garden at sunset with cherry blossom petals falling, koi fish swimming in a pond, a wooden bridge, soft golden lighting, cinematic quality. --seed 42 --width 768 --height 512 --frames 97 --fps 24
+================================================
+
+============================================
+  Stage 1: Stage 1 -- half-res denoising
+============================================
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+  0%|          | 0/8 [00:00<?, ?it/s][stage1] Building PromptEncoder...
+[stage1] Encoding prompt...
+[stage1] video_context shape: torch.Size([1, 1024, 3840]), audio_context shape: torch.Size([1, 1024, 3840])
+[stage1] Stage 1 resolution: 384x256, 97 frames
+[stage1] Running stage 1 denoising (8 steps)...
+bash: line 12:    12 Killed                     $script "${COMMON_ARGS[@]}"

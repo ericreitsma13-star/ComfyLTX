@@ -1,0 +1,57 @@
+{
+  "author": "Dark Cinematic Style",
+  "model_hint": "Llama 3.3 70B Instruct via OpenRouter",
+  "style_guide": "Photorealistic, moody, low-key lighting, cinematic composition, dark atmosphere",
+  "scenes": [
+    {
+      "id": "rainy_night_alley",
+      "title": "Rainy Night Alley",
+      "description": "A wet cobblestone alley at night, rain-slicked pavement reflecting a single neon sign, steam rising from a manhole cover, a lone figure in a trench coat walking away, deep shadows between buildings."
+    },
+    {
+      "id": "abandoned_asylum",
+      "title": "Abandoned Asylum Corridor",
+      "description": "A long peeling-paint corridor in a derelict asylum, debris scattered on tile floor, a single chair at the far end lit by harsh light from a broken window, cobwebs, damp stains on walls."
+    },
+    {
+      "id": "lighthouse_storm",
+      "title": "Lighthouse in Storm",
+      "description": "A solitary lighthouse on a rocky cliff battered by storm waves, beacon cutting through thick fog and rain, lightning illuminating churning dark water, spray and wind, dramatic sky."
+    },
+    {
+      "id": "noir_detective",
+      "title": "Noir Detective Office",
+      "description": "A dimly lit private detective office at night, venetian blind shadows across a cluttered desk, amber desk lamp casting harsh light, a revolver and whiskey bottle in frame, cigarette smoke curling through light beams."
+    },
+    {
+      "id": "burial_fog",
+      "title": "Burial in the Fog",
+      "description": "A funeral in a misty rural cemetery at dawn, black umbrellas clustered around an open grave, bare tree silhouettes emerging from thick ground fog, muted grey-green palette, distant church spire."
+    },
+    {
+      "id": "subway_abandoned",
+      "title": "Abandoned Subway Station",
+      "description": "A decaying underground subway station, flickering fluorescent lights, shattered tile walls, graffiti-covered columns, tracks disappearing into darkness, a single abandoned train car, water dripping from ceiling."
+    },
+    {
+      "id": "forest_firelight",
+      "title": "Forest Campfire at Dusk",
+      "description": "A small campfire in a deep forest at twilight, flames casting warm light on surrounding tree trunks, smoke rising into the dark canopy, a tent silhouette in background, deep blue shadows beyond firelight."
+    },
+    {
+      "id": "catacombs",
+      "title": "The Catacombs",
+      "description": "A narrow tunnel lined with stacked human skulls and bones, a single torch flickering on the wall casting dancing shadows, damp stone floor, arched brick ceiling disappearing into darkness."
+    },
+    {
+      "id": "drowned_forest",
+      "title": "Drowned Forest",
+      "description": "Dead skeletal trees standing in still black water at twilight, mist hovering at water level, a small rowboat half-submerged, purple-grey sky with thin clouds, utter stillness, reflection barely visible."
+    },
+    {
+      "id": "urban_rooftop",
+      "title": "Rooftop at Dawn",
+      "description": "A lone figure standing at the edge of a high rooftop overlooking a sleeping city at first light, city lights still glowing below, thin layer of morning fog between buildings, muted blue-grey tones."
+    }
+  ]
+}

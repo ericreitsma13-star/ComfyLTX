@@ -1,0 +1,26 @@
+{
+  "name": "Architectural Watercolor",
+  "version": "1.0",
+  "description": "Soft architectural watercolor renderings — facades, interiors, urban sketches",
+  "base_model": "SDXL",
+  "loras": [
+    {
+      "file": "architectural-watercolor.safetensors",
+      "name": "arch-watercolor",
+      "weight": 0.8,
+      "trigger_words": ["architectural watercolor", "watercolor wash", "soft rendering"]
+    }
+  ],
+  "prompts": [
+    "architectural watercolor of a modern villa facade, warm sunlight, soft washes, earthy terracotta and cream tones",
+    "architectural watercolor of a minimalist japanese interior, natural light, tatami, shoji screens",
+    "architectural watercolor of a gothic cathedral interior, dramatic light through stained glass, loose washes",
+    "architectural watercolor of an urban street cafe, parisian, soft wet-on-wet technique, impressionistic"
+  ],
+  "settings": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 25,
+    "cfg": 7.0
+  }
+}

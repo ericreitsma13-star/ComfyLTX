@@ -1,9 +1,0 @@
-13:44:17 | start | host: 17603M/95681M (18%) | cache: 15500M | docker: 881.3MiB / 93.44GiB | gpu: 
-13:44:28 | running | host: 18571M/95681M (19%) | cache: 15507M | docker: 1.519GiB / 93.44GiB | gpu: 
-13:44:39 | running | host: 30566M/95681M (32%) | cache: 15582M | docker: 1.695GiB / 93.44GiB | gpu: 
-13:44:50 | running | host: 31917M/95681M (33%) | cache: 15591M | docker: 13.49GiB / 93.44GiB | gpu: 
-13:45:02 | running | host: 31546M/95681M (33%) | cache: 15591M | docker: 13.5GiB / 93.44GiB | gpu: 
-13:45:13 | running | host: 31144M/95681M (33%) | cache: 15600M | docker: 13.49GiB / 93.44GiB | gpu: 
-13:45:24 | running | host: 31079M/95681M (32%) | cache: 15609M | docker: 13.5GiB / 93.44GiB | gpu: 
-13:45:35 | running | host: 31218M/95681M (33%) | cache: 15606M | docker: 13.5GiB / 93.44GiB | gpu: 
-13:45:46 | running | host: 31240M/95681M (33%) | cache: 15608M | docker: 13.51GiB / 93.44GiB | gpu: 

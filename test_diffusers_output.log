@@ -1,9 +1,0 @@
-=== LTX-2 Diffusers Pipeline Test ===
-Minimal: 512×288, 25 frames, 4 steps
-Using:   ltx19b_infer.py (diffusers, no streaming builder)
-=== Starting diffusers pipeline ===
-GPU memory: 86 GB
-Loading LTX-2 pipeline configs from HF...
-Loading distilled fp8 transformer from /root/comfy-models/diffusion_models/ltx-2-19b-distilled-fp8.safetensors...
-Distilled fp8 transformer loaded.
-Fetching 45 files:   0%|          | 0/45 [00:00<?, ?it/s]

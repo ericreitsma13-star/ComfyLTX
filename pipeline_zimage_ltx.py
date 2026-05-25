@@ -10,7 +10,7 @@ OUT_DIR = "/home/ericr/ComfyUI/output"
 
 # LTX models - use Q3_K_M GGUF for UNet, keep checkpoint for text proj + audio VAE
 CKPT = "ltx-2.3-22b-distilled-1.1.safetensors"
-UNET_GGUF = "LTX-2.3-22B-distilled-1.1-Q3_K_M.gguf"
+UNET_GGUF = "LTX-2.3-22B-distilled-1.1-Q6_K.gguf"
 VIDEO_VAE = "ltx-2.3-22b-distilled_video_vae.safetensors"
 TEXT_ENCODER = "gemma_3_12B_it_fp4_mixed.safetensors"
 TEXT_ENCODER_DEVICE = "cpu"  # saves ~4 GB VRAM, text encoding is fast enough on CPU

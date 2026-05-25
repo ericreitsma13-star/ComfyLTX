@@ -7,13 +7,20 @@ import json, urllib.request, time, subprocess, os, sys
 
 COMFY = "http://127.0.0.1:8188"
 OUT_DIR = "/home/ericr/ComfyUI/output"
+
+# LTX models - use Q3_K_M GGUF for UNet, keep checkpoint for text proj + audio VAE
 CKPT = "ltx-2.3-22b-distilled-1.1.safetensors"
+UNET_GGUF = "LTX-2.3-22B-distilled-1.1-Q3_K_M.gguf"
 VIDEO_VAE = "ltx-2.3-22b-distilled_video_vae.safetensors"
 TEXT_ENCODER = "gemma_3_12B_it_fp4_mixed.safetensors"
+TEXT_ENCODER_DEVICE = "cpu"  # saves ~4 GB VRAM, text encoding is fast enough on CPU
 LTX_LORA = "ltx-2.3-22b-distilled-lora-384-1.1.safetensors"
+
+# Z-Image models
 Z_UNET = "z_image_turbo_bf16.safetensors"
 Z_CLIP = "qwen_3_4b.safetensors"
 Z_VAE = "ae.safetensors"
+
 W, H, FPS = 832, 480, 24
 steps = 15
 PER_SCENE = 4.0
@@ -49,6 +56,26 @@ def wait_for(pid, timeout=300):
         time.sleep(3)
     return None
 
+def free_vram():
+    """Unload ALL models from VRAM. Call between stages to prevent OOM."""
+    req = urllib.request.Request(
+        f"{COMFY}/free",
+        data=json.dumps({"free_memory": True}).encode(),
+        headers={"Content-Type": "application/json"}
+    )
+    try:
+        urllib.request.urlopen(req, timeout=30)
+        return True
+    except Exception as e:
+        print(f"  free_vram error: {e}")
+        return False
+
+def wait_for_and_free(pid, timeout=300):
+    """Wait for a prompt to finish, then free VRAM."""
+    result = wait_for(pid, timeout)
+    free_vram()
+    return result
+
 # Verify models exist
 missing = []
 for f, p in [
@@ -81,7 +108,7 @@ for i, s in enumerate(scenes):
     print(f"Z-Image scene {i+1}: {prompt[:60]}...")
     pid = queue(z_wf)
     if not pid: continue
-    result = wait_for(pid)
+    result = wait_for_and_free(pid)  # ← frees VRAM for next scene
     if result and result['status']['status_str'] == 'success':
         for no, out in result.get("outputs",{}).items():
             for img in out.get("images",[]):
@@ -111,10 +138,14 @@ for i, s in enumerate(scenes):
 
     fc = max(9, ((int(round(PER_SCENE*FPS))-1)//8)*8+1)
     ltx_wf = {
-        "10": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}},
+        # UNet: use Q3_K_M GGUF (14 GB) instead of 43 GB checkpoint
+        "10": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": UNET_GGUF}},
+        # Video VAE
         "11": {"class_type": "VAELoader", "inputs": {"vae_name": VIDEO_VAE}},
+        # Audio VAE from checkpoint (loads only ~348 MB of audio VAE weights)
         "12": {"class_type": "LTXVAudioVAELoader", "inputs": {"ckpt_name": CKPT}},
-        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENCODER, "ckpt_name": CKPT, "device": "default"}},
+        # Text encoder forced to CPU to save ~4 GB VRAM
+        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENCODER, "ckpt_name": CKPT, "device": TEXT_ENCODER_DEVICE}},
         "20": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["10",0], "lora_name": LTX_LORA, "strength_model": 0.8}},
         "30": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": ["13",0]}},
         "31": {"class_type": "CLIPTextEncode", "inputs": {"text": NEG, "clip": ["13",0]}},
@@ -139,7 +170,7 @@ for i, s in enumerate(scenes):
     print(f"\nLTX scene {i+1}: {refs[i]}")
     pid = queue(ltx_wf)
     if not pid: continue
-    result = wait_for(pid, timeout=600)
+    result = wait_for_and_free(pid, timeout=600)  # ← frees VRAM before next scene
     if result and result['status']['status_str'] == 'success':
         for no, out in result.get("outputs",{}).items():
             for v in out.get("images", out.get("media",[])):

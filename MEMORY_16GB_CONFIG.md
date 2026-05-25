@@ -29,17 +29,27 @@ def free_memory():
 ### 3. Split workflow into 3 separate GPU stages
 ```
 Stage 1: LLM prompt gen → /free → 
-Stage 2: SDXL ref images (×N) → /free → 
-Stage 3: LTX video gen (×N per scene) → /free →
+Stage 2: Z-Image ref images (×N, /free between each) → /free → 
+Stage 3: LTX video gen (×N per scene, /free between each) → /free →
 Stage 4: FFmpeg assembly (no GPU)
 ```
 
-## VRAM Budget (Stage 3 — tightest)
+## VRAM Budget
 
-| Model | VRAM with ComfyUI dynamic offloading |
+### Stage 2: Z-Image (references)
+| Model | VRAM |
 |---|---|
-| Q3_K_M GGUF UNet | ~8-9 GB (offloads ~6 GB to RAM) |
-| Gemma Q4_XL GGUF text encoder | ~4 GB (offloads ~3 GB to RAM) |
+| Z-Image Q6_K GGUF UNet | ~4 GB |
+| Qwen 4B text encoder | ~6 GB (or ~2 GB with GGUF CLIP) |
+| ae VAE | ~0.3 GB |
+| Activations | ~2 GB |
+| **Total** | **~12 GB** (or ~8 GB with GGUF CLIP) ✅ |
+
+### Stage 3: LTX Video (tightest)
+| Model | VRAM |
+|---|---|
+| Q6_K GGUF UNet | ~10-12 GB (mmap + dynamic offloading) |
+| Gemma Q4_XL GGUF text encoder on CPU | ~0 GB (text encode on CPU) |
 | Video VAE | ~0.5 GB |
 | Audio VAE | ~0.3 GB |
 | Activations + intermediates | ~3 GB |

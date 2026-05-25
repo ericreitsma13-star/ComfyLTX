@@ -16,9 +16,10 @@ TEXT_ENCODER = "gemma_3_12B_it_fp4_mixed.safetensors"
 TEXT_ENCODER_DEVICE = "cpu"  # saves ~4 GB VRAM, text encoding is fast enough on CPU
 LTX_LORA = "ltx-2.3-22b-distilled-lora-384-1.1.safetensors"
 
-# Z-Image models
-Z_UNET = "z_image_turbo_bf16.safetensors"
-Z_CLIP = "qwen_3_4b.safetensors"
+# Z-Image models - using GGUF quants for VRAM savings (~8 GB vs 19.5 GB)
+Z_UNET_GGUF = "z-image-turbo-Q6_K.gguf"     # 5.9 GB (was 12 GB BF16)
+Z_CLIP = "qwen_3_4b.safetensors"              # 7.5 GB (or use GGUF CLIP if downloaded)
+Z_CLIP_GGUF = "qwen3-4b-z-image-turbo-abliteratedv1-q4_k_m.gguf"  # 2.5 GB
 Z_VAE = "ae.safetensors"
 
 W, H, FPS = 832, 480, 24
@@ -79,7 +80,7 @@ def wait_for_and_free(pid, timeout=300):
 # Verify models exist
 missing = []
 for f, p in [
-    (Z_UNET, "/home/ericr/ComfyUI/models/diffusion_models/"),
+    (Z_UNET_GGUF, "/home/ericr/ComfyUI/models/unet/"),
     (Z_CLIP, "/home/ericr/ComfyUI/models/text_encoders/"),
     (Z_VAE, "/home/ericr/ComfyUI/models/vae/"),
 ]:
@@ -88,7 +89,9 @@ for f, p in [
 
 if missing:
     print(f"Waiting for Z-Image downloads: {missing}")
-    print("Check download progress in /tmp/dl_*.log")
+    print("Check download progress:")
+    print("  /tmp/download_zimage_unet.log")
+    print("  /tmp/download_zimage_clip.log")
     sys.exit(1)
 
 print(f"All Z-Image models found. Generating {len(scenes)} scenes...\n")
@@ -97,13 +100,29 @@ print(f"All Z-Image models found. Generating {len(scenes)} scenes...\n")
 refs = []
 for i, s in enumerate(scenes):
     prompt = f"{CHAR_DESC}, {s['env']}"
+    # Z-Image workflow using GGUF UNet (Q6_K, 5.9 GB vs 12 GB BF16) + standard Qwen CLIP
     z_wf = {
-        "57": {"class_type": "f2fdebf6-dfaf-43b6-9eb2-7f70613cfdc1", "inputs": {
-            "text": prompt, "width": 960, "height": 544,
-            "seed": s["seed"], "steps": 4,
-            "unet_name": Z_UNET, "clip_name": Z_CLIP, "vae_name": Z_VAE,
+        "1": {"class_type": "CLIPLoader", "inputs": {"clip_name": Z_CLIP, "type": "qwen_image"}},
+        "2": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": ["1",0]}},
+        "3": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": Z_UNET_GGUF}},
+        "4": {"class_type": "EmptyLatentImage", "inputs": {"width": 960, "height": 544, "batch_size": 1}},
+        "5": {"class_type": "VAELoader", "inputs": {"vae_name": Z_VAE}},
+        "6": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "euler"}},
+        "7": {"class_type": "FlowMatchEulerDiscreteScheduler (Custom)", "inputs": {
+            "steps": 4, "denoise": 0.0, "sigmas_pt": 10, "s_churn": 256, "s_tmin": 0.5,
+            "s_tmax_opt": "disable", "s_noise": 8192, "sigma_max": 1.15, "sigma_min": 1000,
+            "rho": 3, "sigma_bias_switch": 0, "flip_sigmas_opt": "disable",
+            "scheduler_type": "exponential", "use_clipped_sigmas": "disable",
+            "use_timestamped_noise": "disable", "quantize_sigmas": "disable",
+            "use_rescaling": "disable", "device_opt": "cuda"
         }},
-        "58": {"class_type": "SaveImage", "inputs": {"images": ["57",0], "filename_prefix": f"z_ref_{i}"}},
+        "8": {"class_type": "SamplerCustom", "inputs": {
+            "model": ["3",0], "add_noise": True, "noise_seed": s["seed"], "cfg": 1.5,
+            "positive": ["2",0], "negative": ["2",0], "sampler": ["6",0],
+            "sigmas": ["7",0], "latent_image": ["4",0]
+        }},
+        "9": {"class_type": "VAEDecode", "inputs": {"vae": ["5",0], "samples": ["8",0]}},
+        "10": {"class_type": "SaveImage", "inputs": {"images": ["9",0], "filename_prefix": f"z_ref_{i}"}},
     }
     print(f"Z-Image scene {i+1}: {prompt[:60]}...")
     pid = queue(z_wf)

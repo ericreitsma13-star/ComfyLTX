@@ -1,0 +1,13 @@
+=== Run this to check ===
+
+1. Generation status:
+   tail -50 /tmp/comfyui.log | grep -E "Prompt executed|error|Exception|success"
+
+2. Q3_K_M download status:
+   tail -3 /tmp/dl_q3.log
+
+3. Latest output files:
+   ls -lt /home/ericr/ComfyUI/output/*.mp4 | head -5
+
+4. All generated clips (if multi-scene):
+   ls -la /home/ericr/ComfyUI/output/mv_scene_*.mp4 2>/dev/null | wc -l

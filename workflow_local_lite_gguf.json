@@ -1,5 +1,5 @@
 {
-  "10": { "class_type": "UnetLoaderGGUF", "inputs": { "unet_name": "LTX-2.3-22B-distilled-1.1-Q6_K.gguf" } },
+  "10": { "class_type": "UnetLoaderGGUF", "inputs": { "unet_name": "LTX-2.3-22B-distilled-1.1-Q4_K_M.gguf" } },
   "11": { "class_type": "VAELoader", "inputs": { "vae_name": "ltx-2.3-22b-distilled_video_vae.safetensors" } },
   "12": { "class_type": "LTXVAudioVAELoader", "inputs": { "ckpt_name": "ltx-2.3-22b-distilled-1.1.safetensors" } },
   "13": { "class_type": "LTXAVTextEncoderLoader", "inputs": { "text_encoder": "gemma_3_12B_it_fp4_mixed.safetensors", "ckpt_name": "ltx-2.3-22b-distilled-1.1.safetensors", "device": "cpu" } },

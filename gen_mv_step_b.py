@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Step B: LTX I2V + audio from per-scene references. Run after Step A."""
+"""Step B: LTX I2V + audio from per-scene references. GGUF + CPU text encoder + /free between each scene."""
 import json, urllib.request, time, subprocess, os
 
 COMFY = "http://127.0.0.1:8188"
 OUT = "/home/ericr/ComfyUI/output"
 IN = "/home/ericr/ComfyUI/input"
-CKPT = "LTX-2.3-22B-distilled-1.1-Q3_K_M.gguf"
+UNET = "LTX-2.3-22B-distilled-1.1-Q3_K_M.gguf"
 VIDEO_VAE = "ltx-2.3-22b-distilled_video_vae.safetensors"
 TEXT_ENC = "gemma_3_12B_it_fp4_mixed.safetensors"
+CKPT = "ltx-2.3-22b-distilled-1.1.safetensors"
 LORA = "ltx-2.3-22b-distilled-lora-384-1.1.safetensors"
 full_audio = "/home/ericr/ComfyUI/input/pines_full.mp3"
 W, H, FPS = 832, 480, 24
@@ -16,6 +17,12 @@ PER_SCENE = 4.0
 I2V_STR = 0.8
 CFG = 3.0
 NUM_SCENES = 15
+
+def free_vram():
+    try:
+        req = urllib.request.Request(f"{COMFY}/free", data=json.dumps({"free_memory": True}).encode(), headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=30)
+    except: pass
 
 NEG = "headshot, close up, portrait, from behind, back view, ugly, deformed, blurry, low quality"
 CHAR = "young woman with long dark hair, white dress"
@@ -68,10 +75,10 @@ for i, s in enumerate(scenes):
     fc = max(9, ((int(round(PER_SCENE*FPS))-1)//8)*8+1)
     prompt = f"{CHAR}, medium shot facing viewer chest up, {s['env']}, singing softly, cinematic, sharp"
     wf = {
-        "10": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}},
+        "10": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": UNET}},
         "11": {"class_type": "VAELoader", "inputs": {"vae_name": VIDEO_VAE}},
         "12": {"class_type": "LTXVAudioVAELoader", "inputs": {"ckpt_name": CKPT}},
-        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENC, "ckpt_name": CKPT, "device": "default"}},
+        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENC, "ckpt_name": CKPT, "device": "cpu"}},
         "20": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["10",0], "lora_name": LORA, "strength_model": 0.8}},
         "30": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": ["13",0]}},
         "31": {"class_type": "CLIPTextEncode", "inputs": {"text": NEG, "clip": ["13",0]}},
@@ -96,6 +103,7 @@ for i, s in enumerate(scenes):
     pid = queue(wf)
     print(f"\nScene {i+1}/{NUM_SCENES}: queued")
     res = wait(pid, 600)
+    free_vram()
     if res and res['status']['status_str'] == 'success':
         for no, out in res.get("outputs",{}).items():
             for v in out.get("images", out.get("media",[])):

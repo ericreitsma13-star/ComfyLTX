@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Step A (Z-Image): Per-scene references using actual Z-Image pipeline via API."""
+"""Step A (Z-Image): Per-scene references using Z-Image GGUF via API."""
 import json, urllib.request, time, os, shutil, subprocess
 
 COMFY = "http://127.0.0.1:8188"
@@ -8,6 +8,12 @@ IN = "/home/ericr/ComfyUI/input"
 full_audio = "/home/ericr/ComfyUI/input/pines_full.mp3"
 NUM_SCENES = 15
 DURATION = 4.0
+
+def free_vram():
+    try:
+        req = urllib.request.Request(f"{COMFY}/free", data=json.dumps({"free_memory": True}).encode(), headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=30)
+    except: pass
 
 scenes = [
     {"seed": 100, "prompt": "young woman with long dark hair, white dress, medium shot chest up facing viewer, misty pine forest path at golden dawn, cinematic, photorealistic, sharp"},
@@ -54,11 +60,11 @@ start_all = time.time()
 refs = []
 
 for i, s in enumerate(scenes):
-    # Z-Image workflow (verified working via SamplerCustom + EmptyLatentImage)
+    # Z-Image workflow using GGUF UNet (Q6_K, 5.9 GB vs 12 GB BF16)
     wf = {
         "1": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen_3_4b.safetensors", "type": "qwen_image"}},
         "2": {"class_type": "CLIPTextEncode", "inputs": {"text": s["prompt"], "clip": ["1",0]}},
-        "3": {"class_type": "UNETLoader", "inputs": {"unet_name": "z_image_turbo_bf16.safetensors", "weight_dtype": "default"}},
+        "3": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": "z-image-turbo-Q6_K.gguf"}},
         "4": {"class_type": "EmptyLatentImage", "inputs": {"width": 960, "height": 544, "batch_size": 1}},
         "5": {"class_type": "VAELoader", "inputs": {"vae_name": "ae.safetensors"}},
         "6": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "euler"}},
@@ -82,6 +88,7 @@ for i, s in enumerate(scenes):
     pid = queue(wf)
     print(f"  Ref {i+1}/{NUM_SCENES}: queued")
     res = wait(pid, 180)
+    free_vram()
     if res and res['status']['status_str'] == 'success':
         for no, out in res.get("outputs",{}).items():
             for img in out.get("images",[]):
@@ -97,7 +104,6 @@ for i, s in enumerate(scenes):
             for m in res.get('status',{}).get('messages',[]):
                 if m[0]=='execution_error':
                     print(f"  ERROR: {m[1]['exception_message'][:200]}")
-                    # Fall back to ref_2k.png for this scene
                     shutil.copy(f"{IN}/ref_2k.png", f"{IN}/ref_{i:03d}.png")
                     refs.append(f"{IN}/ref_{i:03d}.png")
                     print(f"  → (fallback) ref_{i:03d}.png from ref_2k.png")

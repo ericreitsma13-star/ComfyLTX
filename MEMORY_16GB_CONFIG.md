@@ -48,12 +48,12 @@ Stage 4: FFmpeg assembly (no GPU)
 ### Stage 3: LTX Video (tightest)
 | Model | VRAM |
 |---|---|
-| Q6_K GGUF UNet | ~10-12 GB (mmap + dynamic offloading) |
+| Q4_K_M GGUF UNet | ~8-9 GB (mmap + dynamic offloading) |
 | Gemma Q4_XL GGUF text encoder on CPU | ~0 GB (text encode on CPU) |
 | Video VAE | ~0.5 GB |
 | Audio VAE | ~0.3 GB |
 | Activations + intermediates | ~3 GB |
-| **Total** | **~16 GB** — fits with dynamic offloading |
+| **Total** | **~14 GB** — fits with dynamic offloading ✅ |
 
 Note: ComfyUI already handles "dynamic VRAM loading" — it stages models in RAM and keeps only active layers in VRAM. The Q3_K_M GGUF is memory-mapped so weights stay on disk/RAM until needed by a GPU operation.
 

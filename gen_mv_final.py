@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Proper IC-LoRA + audio: low IC strength for character, high audio for lip sync."""
+"""IC-LoRA + audio with GGUF UNet, CPU text encoder, /free between scenes."""
 import json, urllib.request, time, subprocess, os
 
 COMFY = "http://127.0.0.1:8188"
@@ -8,8 +8,14 @@ CKPT = "ltx-2.3-22b-distilled-1.1.safetensors"
 VIDEO_VAE = "ltx-2.3-22b-distilled_video_vae.safetensors"
 TEXT_ENCODER = "gemma_3_12B_it_fp4_mixed.safetensors"
 IC_LORA = "ltx-2.3-22b-ic-lora-lipdub.safetensors"
-W, H, FPS = 832, 512, 24  # 832/32=26, 512/32=16 (both even for IC-LoRA downscale)
+W, H, FPS = 832, 512, 24
 steps = 15
+
+def free_vram():
+    try:
+        req = urllib.request.Request(f"{COMFY}/free", data=json.dumps({"free_memory": True}).encode(), headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=30)
+    except: pass
 
 scenes = [
     {"ref": "walk_v04_00001_.png", "prompt": "young woman with long dark hair walking through misty pine forest, medium shot, golden dawn light, cinematic, singing softly, forest background visible", "seed": 50},
@@ -30,10 +36,10 @@ for i, s in enumerate(scenes):
     print(f"\n=== Scene {i+1}/4 ===")
     fc = max(9, ((int(round(DURATION*FPS))-1)//8)*8+1)
     wf = {
-        "10": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}},
+        "10": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": "LTX-2.3-22B-distilled-1.1-Q4_K_M.gguf"}},
         "11": {"class_type": "VAELoader", "inputs": {"vae_name": VIDEO_VAE}},
         "12": {"class_type": "LTXVAudioVAELoader", "inputs": {"ckpt_name": CKPT}},
-        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENCODER, "ckpt_name": CKPT, "device": "default"}},
+        "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENCODER, "ckpt_name": CKPT, "device": "cpu"}},
         "20": {"class_type": "LTXICLoRALoaderModelOnly", "inputs": {"model": ["10",0], "lora_name": IC_LORA, "strength_model": 0.5}},  # lower: guides appearance without overriding motion
         "30": {"class_type": "CLIPTextEncode", "inputs": {"text": s["prompt"], "clip": ["13",0]}},
         "31": {"class_type": "CLIPTextEncode", "inputs": {"text": NEG, "clip": ["13",0]}},
@@ -80,6 +86,7 @@ for i, s in enumerate(scenes):
             break
         time.sleep(5)
     else: print(f"  TIMEOUT")
+    free_vram()
 
 if len(raw_files) >= 2:
     print(f"\n=== Stitching {len(raw_files)} scenes ===")

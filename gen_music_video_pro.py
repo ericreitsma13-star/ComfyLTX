@@ -6,7 +6,6 @@ Single script, end-to-end. Requires only: transformers, scipy, requests.
 import json, urllib.request, time, subprocess, os, sys, math, gc, torch
 import scipy.io.wavfile as wavfile
 
-# ── Config ──────────────────────────────────────────────────────────────
 COMFY = "http://127.0.0.1:8188"
 OUT = "/home/ericr/ComfyUI/output"
 INP = "/home/ericr/ComfyUI/input"
@@ -14,43 +13,47 @@ RENDER_DIR = os.path.join(OUT, "pro_mv")
 os.makedirs(RENDER_DIR, exist_ok=True)
 
 # ── Music Generation Config ─────────────────────────────────────────────
-MUSIC_PROMPT = "upbeat electronic pop with driving bass, synth pads, female vocals, 120 BPM"
-MUSIC_DURATION = 30  # seconds
-MUSIC_MODEL = "facebook/musicgen-medium"  # small/medium/large
+MUSIC_PROMPT = "aggressive rap beat with heavy 808 bass, sharp hi-hats, synth stabs, dark urban atmosphere, 90 BPM"
+MUSIC_DURATION = 40  # seconds
+MUSIC_MODEL = "facebook/musicgen-medium"
+HEARTMULA_LYRICS = """(Verse 1)
+Neon lights on my fur, city reflects in my eyes
+Every rooftop's my stage under these midnight skies
+Microphone in my paw, spitting fire through the mist
+Every shadow in this city knows I exist
 
+(Chorus)
+I'm the king of the concrete jungle, the mouse that roared
+Running these neon streets, I can't be ignored
+Heartbeats match the 808, let the bass explode
+Every corner of this cyberpunk city is my episode"""
 # ── Video Config ────────────────────────────────────────────────────────
-NUM_SCENES = 8
-SCENE_DURATION = 4.0
+NUM_SCENES = 4
+SCENE_DURATION = 10.0
 FPS = 24
 W, H = 832, 480
-STEPS = 15
-CFG = 3.0
-I2V_STRENGTH = 0.7
+# ── Load the proven workflow template ───────────────────────────────────
+WORKFLOW_TEMPLATE = "/home/ericr/ComfyUI/workflow_local_gguf_dual.json"
 
-# ── Models ──────────────────────────────────────────────────────────────
-UNET = "LTX-2.3-22B-distilled-1.1-Q4_K_M.gguf"
-VIDEO_VAE = "ltx-2.3-22b-distilled_video_vae.safetensors"
-TEXT_ENC = "gemma_3_12B_it_fp4_mixed.safetensors"
-CKPT = "ltx-2.3-22b-distilled-1.1.safetensors"
-LORA = "ltx-2.3-22b-distilled-lora-384-1.1.safetensors"
-IC_LORA = "ltx-2.3-22b-ic-lora-lipdub.safetensors"
 Z_UNET = "z-image-turbo-Q6_K.gguf"
 Z_CLIP = "qwen_3_4b.safetensors"
 Z_VAE = "ae.safetensors"
 
 NEG = "headshot, close up, portrait, from behind, back view, ugly, deformed, blurry, low quality, cartoon"
-CHAR = "young woman with long dark hair"
+CHAR = "anthropomorphic mouse rat, standing upright, wearing streetwear, large round ears, whiskers, snout, furry face"
 
-# Scene prompts (generated from lyrics in production)
+NEG = "headshot, close up, portrait, from behind, back view, ugly, deformed, blurry, low quality, cartoon, disney"
+
+# Scene prompts for a rap song about anthropomorphic mice
 scenes = [
-    {"prompt": f"{CHAR} walking through neon-lit city streets at night, rain on pavement, reflections, cyberpunk", "seed": 100},
-    {"prompt": f"{CHAR} standing on rooftop overlooking futuristic city, wind in hair, neon glow", "seed": 101},
-    {"prompt": f"{CHAR} in crowded nightclub, laser lights, smoke machine, dancing", "seed": 102},
-    {"prompt": f"{CHAR} sitting alone at rainy window, city lights outside, melancholy mood", "seed": 103},
-    {"prompt": f"{CHAR} running through alleyway with neon signs, steam rising from vents, cinematic", "seed": 104},
-    {"prompt": f"{CHAR} on stage performing, spotlight, crowd silhouettes, dramatic lighting", "seed": 105},
-    {"prompt": f"{CHAR} walking away from explosion, slow motion, debris flying, epic", "seed": 106},
-    {"prompt": f"{CHAR} close up face, tears of joy, sunrise over city behind, hopeful", "seed": 107},
+    {"prompt": f"{CHAR} standing on a rooftop overlooking a neon-lit cyberpunk city at night, holding a microphone, rapping with attitude, steam rising from vents, cinematic lighting", "seed": 200},
+    {"prompt": f"{CHAR} in a dark alley with dripping water and flickering neon signs, leaning against brick wall, wearing oversized hoodie and chains, shadows, moody", "seed": 201},
+    {"prompt": f"{CHAR} performing on stage under spotlights, crowd silhouetted, smoke machine, holding mic, energetic pose, dramatic backlighting", "seed": 202},
+    {"prompt": f"{CHAR} sitting on a fire escape at golden hour, looking down at the city, thoughtful expression, warm light, depth of field", "seed": 203},
+    {"prompt": f"{CHAR} walking down rain-slicked street at night with posse of other anthropomorphic animals, street lamps reflecting on wet pavement, cinematic wide shot", "seed": 204},
+    {"prompt": f"{CHAR} in a graffiti-covered subway station, rapping aggressively, train arriving in background, motion blur, gritty urban atmosphere", "seed": 205},
+    {"prompt": f"{CHAR} close up face, intense expression, neon light casting purple and blue across face, whiskers and fur detailed, cinematic portrait", "seed": 206},
+    {"prompt": f"{CHAR} standing victorious on rooftop at dawn, arms raised, city skyline behind, golden sunrise, epic hero shot, triumphant mood", "seed": 207},
 ]
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -190,46 +193,24 @@ def generate_refs():
 # ══════════════════════════════════════════════════════════════════════════
 
 def generate_videos(refs, audio_segs, use_lip_sync=False):
-    """Generate LTX video clips with optional IC-LoRA lip sync."""
-    print(f"\n🎬 Generating LTX videos..." if not use_lip_sync else f"\n🎬 Generating LTX videos with IC-LoRA lip sync...")
+    """Generate LTX video clips using the proven workflow template."""
+    with open(WORKFLOW_TEMPLATE) as f:
+        base_wf = json.load(f)
+    
     clips = []
     for i, (s, ref, seg) in enumerate(zip(scenes, refs, audio_segs)):
+        wf = json.loads(json.dumps(base_wf))  # deep copy
         prompt = f"{s['prompt']}, singing passionately, cinematic, sharp"
+        
+        # Modify nodes per scene
+        wf["30"]["inputs"]["text"] = prompt  # CLIPTextEncode positive
+        wf["40"]["inputs"]["image"] = os.path.basename(ref)  # LoadImage
+        wf["41"]["inputs"]["audio"] = os.path.basename(seg)  # LoadAudio
+        wf["47"]["inputs"]["end_time"] = float(SCENE_DURATION)
+        
         fc = max(9, ((int(round(SCENE_DURATION * FPS)) - 1) // 8) * 8 + 1)
-        
-        wf = {
-            "10": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": UNET}},
-            "11": {"class_type": "VAELoader", "inputs": {"vae_name": VIDEO_VAE}},
-            "12": {"class_type": "LTXVAudioVAELoader", "inputs": {"ckpt_name": CKPT}},
-            "13": {"class_type": "LTXAVTextEncoderLoader", "inputs": {"text_encoder": TEXT_ENC, "ckpt_name": CKPT, "device": "cpu"}},
-            "20": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["10",0], "lora_name": LORA, "strength_model": 0.8}},
-            "30": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": ["13",0]}},
-            "31": {"class_type": "CLIPTextEncode", "inputs": {"text": NEG, "clip": ["13",0]}},
-            "32": {"class_type": "LTXVConditioning", "inputs": {"positive": ["30",0], "negative": ["31",0], "frame_rate": float(FPS)}},
-            "40": {"class_type": "LoadImage", "inputs": {"image": os.path.basename(ref)}},
-            "41": {"class_type": "LoadAudio", "inputs": {"audio": os.path.basename(seg)}},
-            "42": {"class_type": "LTXVAudioVAEEncode", "inputs": {"audio": ["41",0], "audio_vae": ["12",0]}},
-            "43": {"class_type": "EmptyLTXVLatentVideo", "inputs": {"width": W, "height": H, "length": fc, "batch_size": 1}},
-            "44": {"class_type": "LTXVImgToVideoInplace", "inputs": {"vae": ["11",0], "image": ["40",0], "latent": ["43",0], "strength": I2V_STRENGTH, "bypass": False}},
-            "46": {"class_type": "LTXVConcatAVLatent", "inputs": {"video_latent": ["44",0], "audio_latent": ["42",0]}},
-            "47": {"class_type": "LTXVSetAudioVideoMaskByTime", "inputs": {"av_latent": ["46",0], "positive": ["32",0], "negative": ["32",1], "model": ["20",0], "vae": ["11",0], "audio_vae": ["12",0], "start_time": 0.0, "end_time": float(SCENE_DURATION), "video_fps": float(FPS), "mask_video": True, "mask_audio": False, "mask_init_value_video": 0.0, "mask_init_value_audio": 0.0, "slope_len": 3}},
-            "50": {"class_type": "RandomNoise", "inputs": {"noise_seed": s["seed"]}},
-            "51": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "euler"}},
-            "52": {"class_type": "BasicScheduler", "inputs": {"model": ["20",0], "scheduler": "linear_quadratic", "steps": STEPS, "denoise": 1.0}},
-            "53": {"class_type": "CFGGuider", "inputs": {"model": ["20",0], "positive": ["47",0], "negative": ["47",1], "cfg": CFG}},
-            "54": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["50",0], "guider": ["53",0], "sampler": ["51",0], "sigmas": ["52",0], "latent_image": ["47",2]}},
-            "60": {"class_type": "LTXVSeparateAVLatent", "inputs": {"av_latent": ["54",0]}},
-            "61": {"class_type": "LTXVSpatioTemporalTiledVAEDecode", "inputs": {"vae": ["11",0], "latents": ["60",0], "spatial_tiles": 2, "spatial_overlap": 4, "temporal_tile_length": 16, "temporal_overlap": 4, "last_frame_fix": False, "working_device": "auto", "working_dtype": "auto"}},
-        }
-        
-        if use_lip_sync:
-            # IC-LoRA for lip sync
-            wf["20"] = {"class_type": "LTXICLoRALoaderModelOnly", "inputs": {"model": ["10",0], "lora_name": IC_LORA, "strength_model": 0.5}}
-            wf["45"] = {"class_type": "LTXAddVideoICLoRAGuide", "inputs": {"positive": ["32",0], "negative": ["32",1], "vae": ["11",0], "latent": ["44",0], "image": ["40",0], "frame_idx": 0, "strength": 0.3, "latent_downscale_factor": 2, "crop": "center", "use_tiled_encode": False, "tile_size": 64, "tile_overlap": 16}}
-            wf["47"] = {"class_type": "LTXVSetAudioVideoMaskByTime", "inputs": {"av_latent": ["46",0], "positive": ["45",0], "negative": ["45",1], "model": ["20",0], "vae": ["11",0], "audio_vae": ["12",0], "start_time": 0.0, "end_time": float(SCENE_DURATION), "video_fps": float(FPS), "mask_video": True, "mask_audio": False, "mask_init_value_video": 0.0, "mask_init_value_audio": 0.0, "slope_len": 3}}
-        
-        wf["70"] = {"class_type": "CreateVideo", "inputs": {"images": ["61",0], "fps": float(FPS)}}
-        wf["71"] = {"class_type": "SaveVideo", "inputs": {"video": ["70",0], "filename_prefix": f"pro_clip_{i:03d}", "format": "mp4", "codec": "h264"}}
+        wf["43"]["inputs"]["length"] = fc
+        wf["70"]["inputs"]["filename_prefix"] = f"pro_clip_{i:03d}"
         
         pid = queue(wf)
         print(f"  Scene {i+1}/{NUM_SCENES}: queued")
@@ -242,6 +223,8 @@ def generate_videos(refs, audio_segs, use_lip_sync=False):
                     if fp and os.path.exists(fp):
                         clips.append(fp)
                         print(f"    → clip_{i:03d}.mp4")
+        else:
+            print(f"    ❌ failed or timeout")
     return clips
 
 # ══════════════════════════════════════════════════════════════════════════

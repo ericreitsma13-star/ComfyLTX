@@ -157,7 +157,7 @@ for i, s in enumerate(scenes):
 
     fc = max(9, ((int(round(PER_SCENE*FPS))-1)//8)*8+1)
     ltx_wf = {
-        # UNet: use Q3_K_M GGUF (14 GB) instead of 43 GB checkpoint
+        # UNet: use Q4_K_M GGUF (17 GB) instead of 43 GB checkpoint
         "10": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": UNET_GGUF}},
         # Video VAE
         "11": {"class_type": "VAELoader", "inputs": {"vae_name": VIDEO_VAE}},

@@ -47,7 +47,16 @@ def build_workflow(image_path, audio_path,
                           "strength_model": lora_strength}},
     }
 
-    # Optional singer LoRA
+    # Optional singer LoRA (EXPERIMENTAL — currently a no-op)
+    # Why this is gated off by default:
+    #   singer_krea2_v1.safetensors is a Krea 2 (Qwen-image) architecture LoRA.
+    #   Its module names (blocks.N.attn.gate/wk/wo) do not match the LTX 2.3
+    #   22B transformer (adaln_single.emb.*). 0/512 keys overlap, so the
+    #   ComfyUI loader emits "NOT LOADED" warnings and applies nothing.
+    # Correct workflow: generate static refs with Krea 2 + singer LoRA, then
+    # animate those refs in LTX with distilled_lora only. See AGENTS.md.
+    # This branch is left in place to make the constraint visible — pass
+    # --singer-lora 0.0 to skip the node entirely (default).
     if singer_lora > 0:
         wf["21"] = {"class_type": "LoraLoaderModelOnly",
                     "inputs": {"model": ["20", 0],
@@ -184,7 +193,11 @@ def main():
     p.add_argument("--duration", type=float, default=7.5)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--lora", type=float, default=0.8)
-    p.add_argument("--singer-lora", type=float, default=0.0, help="singer_krea2_v1 LoRA strength (0=disabled)")
+    p.add_argument("--singer-lora", type=float, default=0.0,
+                   help="singer_krea2_v1 LoRA strength. 0=disabled (default). "
+                        "WARNING: this LoRA targets Krea 2 architecture and is "
+                        "a no-op on LTX 2.3 — see AGENTS.md for the correct "
+                        "Krea 2 → LTX identity pipeline.")
     p.add_argument("--i2v", type=float, default=0.7)
     p.add_argument("--cfg", type=float, default=3.5)
     p.add_argument("--output", default="/home/ericr/ComfyUI/output/ltx_lipsync")

@@ -94,3 +94,17 @@
 systemctl --user start|stop|restart comfyui.service
 ```
 Runs on port 8188 with `--lowvram` flag and `--use-flash-attention`.
+
+## ComfyUI Workflows
+
+| Workflow | File |
+|----------|------|
+| Ideogram 4 standard | `Ideogram_4.0_00679_.json` |
+| Ideogram 4 with KJNodes | `c0a2671af7c4.json` |
+| Ideogram 4 flash attention | `c0a2671af7c4_flashattn.json` |
+
+## Ideogram4PromptBuilderKJ Node
+
+Widget values: [width, height, prompt, style, negative, palette, ...]
+- prompt: plain text description (model converts to JSON internally)
+- bboxes: JSON array with x, y, w, h (0-1 range), type, desc, palette

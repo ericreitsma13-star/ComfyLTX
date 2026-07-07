@@ -1,5 +1,228 @@
 # Agent Memory — ComfyUI Ideogram + SUPIR
 
+## Nettie — Stedin Character (Jul 2026)
+
+### Overview
+Anthropomorphic female energy creature mascot for Stedin (Dutch grid operator).
+Hybrid lightning elemental with humanoid features, wearing Stedin work uniform.
+
+### Stedin Brand Colors
+| Color | Hex | Role |
+|-------|-----|------|
+| **Yellow/Gold** | `#F3D400` | Primary |
+| **White** | `#FFFFFF` | Secondary |
+| **Dark Grey** | `#4F5150` | Text/outline |
+
+### Logo
+- File: `/home/ericr/Downloads/Stedin-logo-300x150.png` (RGBA, transparent bg)
+- Overlay using `CR Overlay Transparent Image` node
+- Position: x=400, y=350, scale=0.5 (on chest area)
+
+### Chosen Model: Krea 2 Turbo
+Best results for hybrid character design. Prompt:
+```
+anthropomorphic female energy creature, humanoid lightning elemental,
+glowing golden-yellow eyes, lightning bolt shaped horns and ears,
+crackling electricity patterns across translucent skin,
+white and gold Stedin work uniform with #F3D400 yellow accents,
+Stedin company logo on chest, safety helmet with lightning emblem,
+electricity and energy theme, glowing energy core visible in chest,
+semi-realistic stylized character, friendly expression,
+warm golden lighting, professional portrait, 960x544
+```
+
+### Reference Images Generated
+- **Krea 2**: 12 images (`nettie_krea2_*`) — best hybrid look
+- **Z-Image**: 8 images (`nettie_zimage_*`) — fast, good variation
+- **Ideogram 4**: 9 images (`nettie_ideogram4_*`) — structured prompts
+- **Logo overlays**: 3 images (`nettie_logo_*`) — with Stedin logo on chest
+
+### Scripts
+- `nettie_refs.py` — Generate Nettie across all 4 models
+- `nettie_logo_overlay.py` — Add Stedin logo to images
+
+### Next Steps
+1. Select best Krea 2 reference for animation
+2. Add Stedin logo overlay to selected refs
+3. Animate with LTX Video (same proven pipeline)
+4. Test character consistency across clips
+
+## Markthal Rotterdam Scene (Jul 2026)
+
+### Best Approach Found
+**Krea 2 img2img** with aerial Markthal photo + denoise=0.6 produced the best result.
+- Used Wikimedia Commons aerial photo (`markthal_aerial_2.jpg`)
+- Prompt: `running on the curved grey roof of a large horseshoe-shaped market hall building, glass facade, yellow cube apartments in background`
+- Denoise=0.6 preserved Markthal structure while adding Nettie
+
+### Issues to Fix
+1. **Nettie too large/monster** — need smaller scale or different pose
+2. **Artifacts** — small duplicate Nettie appearing on street (denoise too high)
+3. **Background removal** — Krea 2 output has golden background that's hard to remove cleanly
+4. **No perfect starting frame yet** — still iterating
+
+### Files
+- `markthal_aerial_2.jpg` — Best aerial Markthal photo (Wikimedia Commons)
+- `step1_nettie_on_roof_342_00001_.png` — Best starting frame (Nettie on roof, denoise=0.6)
+- `nettie_greenscreen_00001_.png` — Nettie with green screen background
+- `markthal_refs.py` — Markthal reference generator
+- `nettie_refs.py` — Nettie reference generator
+
+### Workflow (from user)
+1. Krea 2 img2img → perfect starting frame
+2. LTX-Video I2V → animate (moderate denoise 0.55-0.70)
+3. Krea 2 upscale → add lifelike texture
+- Use architecture shapes in prompt, not "Markthal" name
+- Keep CFG 3.0-4.0, Steps 40-50
+- Denoise 0.55-0.70 for I2V
+
+### Aerial Photos Downloaded
+- `markthal_aerial_1.jpg` — WTC rooftop panorama (2953x1969)
+- `markthal_aerial_2.jpg` — Aerial view with roof (4500x3000) — **BEST**
+- `markthal_aerial_3.jpg` — Aerial view alternate (4500x3000)
+- `markthal_aerial_4.jpg` — From Sint-Laurenskerk (2592x1944)
+- `markthal_aerial_5.jpg` — 2015 aerial (3264x2448)
+
+## Krea 2 Status (as of Jun 30 2026)
+
+**Krea 2 Turbo running locally** on RTX 4090 16GB VRAM.
+
+### Models Downloaded
+| Model | File | Size | Location |
+|-------|------|------|----------|
+| Krea 2 Turbo FP8 | `krea2_turbo_fp8_scaled.safetensors` | 13GB | `diffusion_models/` |
+| Krea 2 RAW FP8 | `krea2_raw_fp8_scaled.safetensors` | 13GB | `diffusion_models/` |
+| Krea 2 RAW BF16 | `krea2_raw_bf16.safetensors` | 13GB | `diffusion_models/` |
+| Qwen3-VL-4B FP8 | `qwen3vl_4b_fp8_scaled.safetensors` | 4.9GB | `text_encoders/` |
+| Qwen Image VAE | `qwen_image_vae.safetensors` | 243MB | `vae/` |
+
+### Key Fixes Applied
+- ComfyUI updated to latest (native Krea 2 support via `comfy/text_encoders/krea2.py`)
+- `comfy-kitchen` updated from 0.2.10 to 0.2.15 (fixed FP8 text encoder loading)
+
+### Workflow
+- Template: `workflows/krea2_turbo_t2i.json`
+- Uncensored workflow: `workflows/krea2_turbo_uncensored.json`
+- Test script: `test_krea2.py`
+- Uncensored test script: `test_krea2_uncensored.py`
+- Node chain: `UNETLoader → CLIPLoader(krea2) → TextEncodeKrea2 → ConditioningZeroOut → EmptyLatentImage → KSampler(8 steps, euler, simple, cfg=1) → VAEDecode → SaveImage`
+- Uncensored chain: `UNETLoader → CLIPLoader(krea2) → LoraLoaderModelOnly(MysticXXX) → CLIPTextEncode → ConditioningKrea2Rebalance(balanced, renormalize) → KSampler(12 steps, euler, beta, cfg=1) → VAEDecode → SaveImage`
+
+### MysticXXX LoRA
+- `MysticXXX_KREA2_v1.safetensors` (228MB) in `models/loras/`
+- From CivitAI (model ID 3067313)
+- Strength 1.0, applied to model only (not clip)
+
+### ConditioningKrea2Rebalance
+- Custom node: `ComfyUI-ConditioningKrea2Rebalance` (fork of nova452)
+- Repo: `huwhitememes/comfyui-krea2-conditioning`
+- Quality-preserving per-layer conditioning control
+- Default: `balanced` preset, `renormalize=true`, `multiplier=1.0`
+- Boosts deep detail layers without inflating conditioning magnitude
+
+### FP8 Text Encoder Limitation
+- FP8 Qwen3-VL works for **text-only** generation
+- For **image references** (vision path), need BF16 text encoder
+- Error: "add_stub not implemented for Float8_e4m3fn"
+
+### Singer LoRA Training v1 (Completed)
+- **Trained**: `singer_krea2_v1.safetensors` (218MB) in `models/loras/`
+- **Trigger word**: `svsinger`
+- **Training data**: 15 images in `ai-toolkit/training_data/singer_sdxl/`
+- **Trained on**: Modal A100 80GB, ~41 min, 1500 steps
+- **Model**: Krea 2 RAW BF16 (trained), Krea 2 Turbo FP8 (inference)
+
+### Singer LoRA Training v2 (Setup Ready — Not Yet Trained)
+Standalone clone at `/home/ericr/ai-toolkit_v2/` (separate from existing `~/ai-toolkit/`).
+
+**Source**: AI_Characters training configs from Reddit/CivitAI
+- Pinned commit: `f63221e577053e86c2a673adec20e43d7b81988d`
+- 4 replacement files applied (custom flowmatch sampler, base_trigger_preservation, SDTrainer)
+- **Key improvement**: `timestep_type: sigmoid_linear_shift` (sigmoid-linear-blend distribution)
+
+**Dataset**: 30 images with SCALISG captions at `training_data/singer_v2/`
+- 15 from original `singer_sdxl/` + 9 from `singer/` + 6 from `input/singer_*_v2.png`
+- All captions LLM-generated in natural-language paragraphs (80-220 words)
+- Caption rules: `[trigger]` throughout, never describe eyes/hair/skin/age, describe mouth open/closed + shot type
+
+**3 Configs (Krea 2 focus — others for reference)**:
+| Config | arch | CFG | Steps | Model |
+|--------|------|-----|-------|-------|
+| `config/train_singer_krea2_v2.yaml` | krea2 | 1.0 | 8 | local `krea2/` diffusers dir |
+| `config/train_singer_ideogram4_v2.yaml` | ideogram4 | 7.0 | 48 | local `ideogram4_fp8_scaled.safetensors` |
+| `config/train_singer_klein9b_v2.yaml` | flux2_klein_9b | 4.0 | 50 | local `models/FLUX.2-klein-base-9B/` (48GB, downloaded via aria2c) |
+
+**All share**: rank 8, LR 6e-05 AdamW constant, `sigmoid_linear_shift`, `base_trigger_preservation: true`, caption_dropout 0.05, buckets [768, 1024], 3000 steps
+
+**To train** (ComfyUI must be stopped):
+```bash
+cd /home/ericr/ai-toolkit_v2 && source venv/bin/activate
+# Krea 2 (best model — focus here)
+python run.py config/train_singer_krea2_v2.yaml
+# Others if needed:
+python run.py config/train_singer_ideogram4_v2.yaml
+python run.py config/train_singer_klein9b_v2.yaml
+```
+
+**Runner shortcut**: `bash run_all_training.sh`
+
+**Checkpoint testing**: Start at 750 steps, then every 150 steps. Best typically 750-3000.
+
+**CRITICAL**: Singer LoRA is Krea 2 architecture — CANNOT be applied to LTX Video (22B transformer). Different architectures. LoRA → generate static reference images → LTX (distilled LoRA only).
+
+### Working LTX Pipeline (Jul 3 2026)
+- **Pipeline**: `ltx_lipsync_fixed.py` with `--lora 0.8 --i2v 0.6 --cfg 3.5`
+- **Model**: Q6_K GGUF + distilled LoRA only (no singer LoRA, no IC-LoRA)
+- **References**: Generated with Krea 2 + singer LoRA, then fed to LTX
+- **Resolution**: 960×544 @ 24fps
+- **Duration**: 7.5s per clip (177 frames)
+- **Sampler**: euler, linear_quadratic, 15 steps
+
+**Working reference images** (all in `input/`):
+| Ref | Setting | Status |
+|-----|---------|--------|
+| `ref_c_stage.png` | Stage, concert lighting | ✅ Good identity |
+| `ref_d_bar.png` | Bar, neon signs | ✅ Good identity |
+| `ref_e_golden_hour.png` | Outdoors, golden hour | ✅ Good identity |
+| `ref_g_look_camera.png` | Looking at camera | ✅ Good identity |
+| `ref_h_bokeh_wall.png` | Leaning on wall, bokeh | ✅ Good identity |
+| `singer_studio_v2.png` | Studio, warm amber | ✅ Good identity |
+| `singer_medium_v2.png` | Neon street, medium | ✅ Good identity |
+| `ref_f_alley.png` | Dark alley | ⚠️ Slightly off identity |
+| `singer_closeup_v2.png` | Close-up | ❌ Too zoomed, no lip sync |
+| `singer_rain_v2.png` | Rain scene | ❌ Too artistic, no lip sync |
+
+**Batch rendering**:
+```bash
+python3 -u ~/ComfyUI/batch_song.py
+```
+- Cycles through 7 good refs (stage, bar, golden hour, look camera, bokeh, studio, medium)
+- 25 segments (segment_000 to segment_024)
+- Output: `output/ltx_lipsync/ltx_lipsync_001XX-audio.mp4`
+- ~5 min per clip, ~2 hours total
+
+### Custom Node Fix (Required)
+- `ComfyUI-LTXVideo` `pyramid_blending.py` fails to import due to kornia API change
+- Error: `cannot import name 'pad' from 'kornia.geometry.transform.pyramid'`
+- **Fix**: Apply git stash or manually patch `pyramid_blending.py`
+- Without this fix, ALL LTXVideo nodes fail to register (LTXVSetAudioVideoMaskByTime, LTXVSpatioTemporalTiledVAEDecode, etc.)
+
+### LoRA Training Plan
+- Full plan: `plan_heatwave_lora_training.md`
+- Train on Krea 2 RAW, infer on Krea 2 Turbo
+- Config: `ai-toolkit/config/train_lora_krea2_16gb_v2.yaml`
+- 15 training images in `ai-toolkit/training_data/singer_sdxl/`
+- **Running on Modal** (A100 80GB, ~$1.50/hr): `modal_train_krea2.py`
+- Monitor: `modal app list && modal app logs <app-id>`
+- Download: `modal volume get krea2-lora-output / /tmp/output/`
+
+### Mimic PC Workflow Candidates
+| Workflow | Size | Status |
+|----------|------|--------|
+| HyperLoRA: Character Portrait Generation | 23.8 GB | ❌ NOT a training tool — uses pre-trained SDXL models, not Krea 2 |
+| InstaLoRAm: Your Virtual Influencer Generator | 8.2 GB | Not yet investigated |
+| AI InfluencerV2 | 22.7 GB | Not yet investigated |
+
 ## Workflow Files
 
 | File | Description |
@@ -286,78 +509,86 @@ The text experiment uses a specialized `text_render_transform()` function with a
 ## LTX 2.3 GGUF Lip-Sync Pipeline
 
 ### Overview
-Lip-synced video generation using LTX 2.3 + IC-LoRA on 16GB VRAM. Reference image + vocals audio → 4s lip-synced video at 704×1280.
+Lip-synced video generation using LTX 2.3 + distilled LoRA on 16GB VRAM. Reference image + vocals audio → 7.5s lip-synced video at 960×544.
+
+**Key insight**: Singer LoRA (Krea 2 architecture) CANNOT be applied to LTX Video (22B transformer). Identity comes from reference images generated with Krea 2 + singer LoRA, then animated with LTX (distilled LoRA only).
 
 ### Files
 
 | File | Purpose |
 |------|---------|
 | `~/ComfyUI/ltx_lipsync_fixed.py` | Main lip-sync script (CLI tool, current active) |
-| `~/ComfyUI/ltx_lipsync_test.py` | Original script (GGUF-only, no IC-LoRA, deprecated) |
-| `~/ComfyUI/ltx_fp8_test.py` | FP8 checkpoint test script |
-| `~/ComfyUI/ltx_fullckpt_test.py` | Full checkpoint test script |
-| `~/ComfyUI/input/reference_pop_singer_v2.png` | Reference portrait (704×1280) |
-| `~/ComfyUI/input/sunburned_smile_vocals_8s.wav` | Extracted vocals (8s) |
-| `~/ComfyUI/output/ltx_lipsync_*.mp4` | Generated videos (12+ iterations) |
+| `~/ComfyUI/batch_song.py` | Batch renderer (25 segments, alternating refs) |
+| `~/ComfyUI/generate_singer_refs.py` | Reference image generator (Krea 2 + singer LoRA) |
+| `~/ComfyUI/input/ref_*.png` | Working reference images (7 verified) |
+| `~/ComfyUI/input/segment_*.wav` | Audio segments (25 × 7.5s) |
+| `~/ComfyUI/output/ltx_lipsync/ltx_lipsync_*.mp4` | Generated video clips |
 
-### Running
+### Running (Single Clip)
 ```bash
 /home/ericr/miniconda3/envs/flash/bin/python3 ~/ComfyUI/ltx_lipsync_fixed.py \
-  --image reference_pop_singer_v2.png \
-  --audio sunburned_smile_vocals_8s.wav \
-  --duration 4 --seed 53 --lora 0.2 --i2v 0.5
+  --image ref_c_stage.png \
+  --audio segment_010.wav \
+  --prompt "svsinger, female singer on neon-lit city street, subtle movement, dramatic neon lighting, cinematic portrait, photorealistic, detailed face, natural skin, 35mm film" \
+  --width 960 --height 544 --duration 7.5 --seed 50 \
+  --lora 0.8 --i2v 0.6 --cfg 3.5
 ```
 
+### Running (Batch - Full Song)
+```bash
+python3 -u ~/ComfyUI/batch_song.py
+```
+- Cycles through 7 verified reference images
+- 25 segments (segment_000 to segment_024)
+- Output: `output/ltx_lipsync/ltx_lipsync_001XX-audio.mp4`
+- ~5 min per clip, ~2 hours total
+
 ### Key Parameters
-| Param | Current | Notes |
-|-------|---------|-------|
-| `--width` | 704 | Must be divisible by 32 |
-| `--height` | 1280 | Must be divisible by 32; height/32 must be even for IC-LoRA |
-| `--duration` | 4 | 4s best for coherence; longer = end frame degrades |
-| `--lora` | 0.2 | Distilled LoRA strength; lower = less face artifacts |
-| `--i2v` | 0.5 | Image-to-video strength; lower = more motion freedom |
-| `--seed` | varies | Random seed for reproducibility |
+| Param | Value | Notes |
+|-------|-------|-------|
+| `--width` | 960 | Must be divisible by 32 |
+| `--height` | 544 | Must be divisible by 32 |
+| `--duration` | 7.5 | 7.5s = 177 frames @ 24fps |
+| `--lora` | 0.8 | Distilled LoRA strength |
+| `--i2v` | 0.6 | Image-to-video strength |
+| `--cfg` | 3.5 | Classifier-free guidance |
+| `--seed` | varies | `50 + segment_index * 13` |
 
 ### Model
 
-| Component | File | Size | VRAM |
-|-----------|------|------|------|
-| UNET (Q4_K_M) | `LTX-2.3-22B-distilled-1.1-Q4_K_M.gguf` | 13 GB | ~9 GB |
-| UNET (Q6_K, fallback) | `LTX-2.3-22B-distilled-1.1-Q6_K.gguf` | 20 GB | ~13 GB |
-| Text Encoder | `gemma_3_12B_it_fp8_e4m3fn.safetensors` | 13 GB | offloaded |
-| Text Projection | `ltx-2-3-22b-text_encoder.safetensors` | 2.2 GB | — |
-| IC-LoRA | `ltx-2.3-22b-ic-lora-lipdub.safetensors` | 70 MB | — |
-| Distilled LoRA | `ltx-2.3-22b-distilled-lora-384-1.1.safetensors` | 7.1 GB | patched |
-| Audio VAE | `ltx-2.3-22b-distilled_audio_vae.safetensors` | 348 MB | ~0.3 GB |
-| Video VAE | `ltx-2.3-22b-distilled_video_vae.safetensors` | 1.4 GB | ~0.3 GB |
-| Latent Upscaler | `ltx-2.3-spatial-upscaler-x2-1.1.safetensors` | 950 MB | not used yet |
+| Component | File | Size | Notes |
+|-----------|------|------|-------|
+| UNET (Q6_K) | `LTX-2.3-22B-distilled-1.1-Q6_K.gguf` | ~13 GB | Main model |
+| Distilled LoRA | `ltx-2.3-22b-distilled-lora-384-1.1.safetensors` | 7.1 GB | Quality enhancement |
+| Video VAE | `ltx-2.3-22b-distilled_video_vae.safetensors` | 1.4 GB | Video decode |
+| Audio VAE | `ltx-2.3-22b-distilled_audio_vae.safetensors` | 348 MB | Audio decode |
+| Text Encoder | `gemma_3_12B_it_fp8_e4m3fn.safetensors` | 13 GB | Text encoding |
+| Text Projection | `ltx-2-3-22b-text_encoder.safetensors` | 2.2 GB | Text projection |
 
 ### Workflow Architecture (ltx_lipsync_fixed.py)
 
 ```
-UnetLoaderGGUF (Q4_K_M) → LoraLoaderModelOnly (distilled) → LTXICLoRALoaderModelOnly
+UnetLoaderGGUF (Q6_K) → LoraLoaderModelOnly (distilled)
 LTXAVTextEncoderLoader → clip
 VAELoader → video_vae
 LTXVAudioVAELoader → audio_vae
 
-LoadImage → LTXVPreprocess → image
+LoadImage → image
 LoadAudio → LTXVAudioVAEEncode → audio_latent
-EmptyLTXVLatentVideo → latent (352×640 = 704×1280/2)
-LTXVImgToVideoInplace (strength=0.5) → video_latent
-
-CLIPTextEncode(pos + neg) → IC-LoRA guide(cond + latent) → conditioned
+EmptyLTXVLatentVideo → latent (960×544)
+LTXVImgToVideoInplace (strength=0.6) → video_latent
 
 LTXVConcatAVLatent(video + audio) → av_latent
 LTXVSetAudioVideoMaskByTime (mask_video:1, mask_audio:0, SOTAI) → masked_av
 
 LTXVConditioning → conditioning
-RandomNoise + KSamplerSelect(euler_ancestral_cfg_pp) + ManualSigmas(8-step) + CFGGuider
+RandomNoise + KSamplerSelect(euler) + BasicScheduler(linear_quadratic, 15 steps) + CFGGuider
 SamplerCustomAdvanced → sampled_av
 
 LTXVSeparateAVLatent → video + audio latents
-LTXVSpatioTemporalTiledVAEDecode(spatial_tiles=2, temporal_tile_length=16, last_frame_fix)
+LTXVSpatioTemporalTiledVAEDecode(spatial_tiles=2, temporal_tile_length=16)
 LTXVAudioVAEDecode → audio
-CreateVideo + LTXMotionSaveVideo → .mp4
+VHS_VideoCombine → .mp4
 ```
 
 ### Architecture Fixes (vs original ltx_lipsync_test.py)
@@ -810,3 +1041,538 @@ forces the model to render realistic surfaces.
 - Snap to 8n+1 frames (not 7.5s which is off-grid)
 - 8-section prompt structure for better quality
 - Singer reference alternates (close-up, wide) per scene type
+
+## MrFlow - Multi-Resolution Flow Matching (Jul 4 2026)
+
+### Overview
+Training-free diffusion acceleration via staged sampling: low-res → RealESRGAN x2 upscale → re-encode → single high-res refinement step. 8-21x speedup on flow-matching models.
+
+### Files Installed
+| Component | Location | Status |
+|-----------|----------|--------|
+| MrFlow ComfyUI Plugin | `custom_nodes/ComfyUI-MrFlow/` | ✅ Installed |
+| Qwen-Image FP8 Model | `models/diffusion_models/qwen_image_fp8_e4m3fn.safetensors` | ✅ 20GB (copied from backup) |
+| Qwen-Image VAE | `models/vae/qwen_image_vae.safetensors` | ✅ Already present (243MB) |
+| Qwen-Image CLIP | `models/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors` | ✅ 8.8GB (copied from backup, type: `qwen_image`) |
+| Qwen-Image CLIP (alt) | `models/text_encoders/qwen_3_4b.safetensors` | ⚠️ 7.5GB - WRONG dims for Qwen-Image (2560 vs 3584) |
+| RealESRGAN x2 | `models/upscale_models/RealESRGAN_x2.pth` | ✅ 64MB (from v0.2.1 release) |
+| Qwen-Image GGUF (alt) | `models/unet/qwen-image-Q4_K_S.gguf` | ✅ Already present (12GB) |
+
+### Workflow: `custom_nodes/ComfyUI-MrFlow/examples/qwen_mrflow_workflow.json`
+Node chain: `UNETLoader → CLIPLoader(qwen_image) → VAELoader → UpscaleModelLoader(RealESRGAN_x2) → MrFlowQwenPreset → EmptySD3LatentImage → KSampler → VAEDecode → MrFlowUpscaleEncode → MrFlowAttachReferenceLatent → MrFlowQwenRefine → SaveImage`
+
+### Model Paths to Change in Workflow
+| Node | Workflow Default | Our Version |
+|------|-----------------|-------------|
+| UNETLoader | `qwen_image_bf16.safetensors` | `qwen_image_fp8_e4m3fn.safetensors` |
+| CLIPLoader | `qwen_2.5_vl_7b.safetensors` (type: `qwen_image`) | `qwen_2.5_vl_7b_fp8_scaled.safetensors` (type: `qwen_image`) |
+| VAELoader | `qwen_image_vae.safetensors` | Unchanged |
+| UpscaleModelLoader | `RealESRGAN_x2.pth` | `RealESRGAN_x2.pth` |
+
+### VRAM Consideration
+- Qwen-Image FP8 is 20GB on disk. With `--lowvram`, should work on 16GB RTX 4090 (model is loaded layer-by-layer)
+- Alternative: use GGUF quantized version `qwen-image-Q4_K_S.gguf` (12GB) in `unet/` via `UNETLoader`
+- The GGUF version is smaller but may not load via standard `UNETLoader` — test both
+
+### What MrFlow Can Accelerate
+| Model | MrFlow Support | Our Setup | Speed | Priority |
+|-------|---------------|-----------|-------|----------|
+| Qwen-Image | ✅ Official ComfyUI plugin | ✅ FP8 model ready | 34s (12+1) | **Tested** |
+| Ideogram 4 | ✅ Custom `MrFlowIdeogramRefine` node | ✅ FP8 dual model | 19s (12+1) | **Tested** |
+| Z-Image Turbo | ✅ Official demo (21x speedup) | ✅ BF16 model in `diffusion_models/` | Untested | Could accelerate ref gen |
+| Krea 2 Turbo | ✅ Community confirmed, verified | ✅ FP8 running | 10.9s (8+1) | Accelerates ref gen |
+| LTX Video | ❌ Different architecture (video transformer) | Q6_K GGUF | N/A | Not applicable |
+
+### Future: Apply to Existing Pipelines
+- Reference image generation (Krea 2 + singer LoRA): MrFlow could cut 8-step gen to 4+1 or even 2+1
+- Ideogram 4 parameter sweep: MrFlow `12+1` setting could cut experiment time from 72min to ~8min
+- B-roll ref generation (Z-Image): MrFlow `8+1` gives 21x speedup per the paper
+
+## Model Comparison — Krea 2 vs Ideogram 4 (Jul 4 2026)
+
+### Model Strengths
+
+| Scene | Best Model | Why |
+|-------|-----------|-----|
+| **Product/staging** (whisky pour) | **Krea 2** | Treats prompts as art direction — clean composition, staging |
+| **Portrait/cinematic** | **Krea 2** | Controlled studio feel, deliberate composition |
+| **Nature/macro** (hummingbird) | **Ideogram 4** | Literal photorealism, fine detail, lighting accuracy |
+| **Landscape** (Everest, fjord) | **Ideogram 4** | Better depth, atmosphere, photographic realism |
+| **Text in image** | **Ideogram 4** | Built-in text rendering via `"type": "text"` elements |
+| **Artistic/mood** | **Krea 2** | Painterly feel, style consistency, opinionated composition |
+
+Per the [Krea blog](https://www.krea.ai/blog/krea-2-and-nano-banana-2-side-by-side): Krea 2 is the instrument for *direction* (composition, mood, taste). Ideogram 4 is best for *truth on the page* (photorealism, literal prompt following, text).
+
+### Native T2I Settings
+
+| Setting | Krea 2 | Ideogram 4 |
+|---------|--------|------------|
+| Steps | 8 (Turbo) | 12 (Turbo) / 20 (Default) |
+| CFG | **1.0** (distilled model) | 7.0 (DualModelGuider internal) |
+| Sampler | euler | euler |
+| Scheduler | simple | Ideogram4Scheduler (mu=0.5, std=1.75) |
+| Latent | EmptyLatentImage (4ch) | EmptyFlux2LatentImage (16ch) |
+| CLIP type | `krea2` | `ideogram4` |
+| VAE | `qwen_image_vae.safetensors` | `flux2-vae.safetensors` |
+| Typical time @1024² | ~13s | ~25s |
+
+**CRITICAL**: Krea 2 is a distilled model — must use **cfg=1.0**. Higher CFG produces garbled output.
+
+### Proper Ideogram 4 JSON Prompting (KJ Node)
+
+**Per the [official docs](https://github.com/ideogram-oss/ideogram4/blob/main/docs/prompting.md):**
+- Plain text prompts **trigger the safety filter** — structured JSON is required
+- `compositional_deconstruction` (background + elements) is **required**
+- `style_description` must include `photo` or `art_style` — setting `style: "none"` bypasses it
+- `style.photo` must be passed as a dotted key in the KJ node inputs (DynamicCombo v3 API)
+
+**API format for KJ node (node 209):**
+```python
+"kj": {
+    "class_type": "Ideogram4PromptBuilderKJ",
+    "inputs": {
+        "width": 1024, "height": 1024,
+        "high_level_description": "one-line scene summary",
+        "background": "scene background description",
+        "style": "photo",                                  # NOT "none"
+        "style.photo": "24mm, f/4, architectural photo",    # dotted key for sub-field
+        "aesthetics": "style keywords",
+        "lighting": "lighting description",
+        "medium": "photograph",
+        "style_palette_data": "",
+        "elements_data": '[...]',                          # must be non-empty JSON string
+        "bg_brightness": 30,
+        "import_mode": "when empty",
+        "output_format": "compact",
+        "coord_mode": "normalized",
+        "bbox_order": "yx",
+    }
+}
+```
+
+**`elements_data` must be a non-empty JSON string** — at least one element:
+```json
+[{"x":0.2,"y":0.1,"w":0.6,"h":0.5,"type":"obj","desc":"Main subject description","palette":[]}]
+```
+
+### Test Outputs (all at 1024×1024 unless noted)
+
+| Prompt | Krea 2 | Ideogram 4 | Best |
+|--------|--------|------------|------|
+| Glass fjord interior | `krea2_fjord.png` (1.3MB) | `ideogram_proper.png` (1.7MB) | **Ideogram** |
+| Everest landscape | — | `ideogram_everest_kj.png` (1.6MB) | **Ideogram** |
+| Whisky pour | `krea2_whisky.png` (1.0MB) | `ideogram_whisky.png` (1.0MB) | **Krea 2** |
+| Hummingbird | `krea2_hummingbird.png` (1.1MB) | `ideogram_hummingbird.png` (1.5MB) | **Ideogram** |
+| Cinematic portrait | `krea2_portrait.png` (1.1MB) | `ideogram_portrait.png` (1.5MB) | **Krea 2** |
+| Thor movie poster @1536×2304 | `thor_krea2.png` (5.1MB, 51s) | `thor_cinematic.png` (6.7MB, 170s) | **Krea 2** |
+| Avengers 7 poster @1536×2304 | — | `avengers7_v2.png` (6.5MB, 103s) | — |
+
+**Rule of thumb**: Krea 2 for portraits/products/staging. Ideogram 4 for landscapes/nature/text in images.
+
+---
+
+## External Resources — stablediffusiontutorials.com
+
+**Site**: https://www.stablediffusiontutorials.com/
+Comprehensive tutorials for ComfyUI, models, LoRAs, and workflows. Has guides for Krea 2, LTX Video, Ideogram 4, and more.
+
+**Key pages**:
+| Page | URL | Content |
+|------|-----|---------|
+| Krea 2 Base/Turbo | `2026/06/krea2-base-turbo.html` | Model info, variants, install guide |
+| Krea 2 LoRA models | `2026/06/krea2-lora-models.html` | Top 15 Krea 2 LoRAs, training on Raw, infer on Turbo |
+| LTX 2.3 LoRA models | `2026/05/ltx2.3-lora-models.html` | 19 LTX LoRAs for style, quality, enhancement |
+| Ideogram 4 | `2026/06/ideogram-4-fp8.html` | Ideogram 4 install and workflows |
+| Boogu Image 0.1 | `2026/06/boogu-image-0.1.html` | New multimodal model |
+| Wan2.2 VideoGen | `2025/08/wan-2.2-video-generation.html` | Wan video generation guide |
+
+**Krea 2 LoRA tip from site**: Train on Krea 2 Raw, infer on Krea 2 Turbo. Official Krea LoRAs follow this pattern.
+
+## LTX 2.3 LoRA Downloads (Jul 5 2026)
+
+Downloaded from stablediffusiontutorials.com LTX LoRA roundup, stored in `models/loras/`:
+
+| LoRA | File | Size | Use |
+|------|------|------|-----|
+| Upscale IC | `ltx2.3_upscale_ic-lora_06250.safetensors` | 313MB | Second-pass refinement, adds clarity |
+| Singularity OmniCine V1 | `Singularity-LTX-2.3_OmniCine_V1.safetensors` | 2.6GB | IC LoRA for I2V, better physical consistency |
+| Soft Enhance | `LTX2.3_Soft_Enhance.safetensors` | 337MB | Natural detail enhancement |
+| Crisp Enhance | `LTX2.3_Crisp_Enhance.safetensors` | 673MB | Sharp detail enhancement |
+| Fantasy Realism | `Fantasy_Realism.safetensors` | 337MB | Cinematic fantasy style |
+
+---
+
+## Gore / Extreme Content Testing (Jul 5 2026)
+
+### Summary
+Session focused on testing the limits of Krea 2 and Ideogram 4 for graphic violence/gore/body horror.
+
+| Model | Gore | Safety Filter | Method |
+|-------|------|---------------|--------|
+| **Krea 2 Turbo** (vanilla, cfg=1, 8 steps) | ❌ Tames everything | None needed — soft by design | EmptyLatentImage |
+| **Krea 2 RAW FP8** (cfg=5, 20 steps) | ❌ B&W garbage | None | KSampler euler/simple |
+| **Krea 2 Turbo + Krea2T-Enhancer** @0.5 | ✅ **Renders gore** | Uncensored | 12 steps, cfg=1, euler/beta |
+| **Ideogram 4** (structured JSON via KJ node) | ✅ **Renders gore** | ✅ Structured JSON bypass; "execution" blocked | Turbo, CFG 5 |
+
+### Krea 2 + Krea2T-Enhancer (Installed Jul 5)
+
+**Source**: `capitan01R/ComfyUI-Krea2T-Enhancer` on GitHub (87 stars)
+
+**What it does**: Model patcher that wraps Krea 2's text-fusion mechanism (txtfusion) — boosts deep detail layers per-layer with configurable weights. Breaks the "taste" smoothing of the distilled Turbo model.
+
+**Workflow**:
+```
+UNETLoader → ComfyUI-Krea2T-Enhancer (strength=0.5) → KSampler → VAEDecode → SaveImage
+```
+
+**Settings**: 12 steps, cfg=1, euler/beta scheduler, 1024²
+
+**Parameters**:
+- `enabled`: BOOLEAN (default True)
+- `strength`: FLOAT 0-2 (default 1.0, recommended 0.5)
+- `debug`: BOOLEAN (default False)
+
+### Ideogram 4 Safety Filter Bypass
+
+**Required KJ Node 209 fields to pass safety filter:**
+
+| Field | Required Value |
+|-------|---------------|
+| `style` | `"photo"` (NOT `"none"`) |
+| `style.photo` | dotted key sub-input, e.g. `"forensic documentary photography"` |
+| `elements_data` | non-empty JSON string with ≥1 element |
+| `coord_mode` | `"normalized"` |
+| `bbox_order` | `"yx"` |
+| `output_format` | `"compact"` |
+
+**Key finding: `high_level_description` must match the explicit content** — using a generic HLD like "A documentary forensic photograph" triggers cross-reference check with elements_data. Put the full raw prompt as HLD.
+
+**Known failure**: "execution in progress" with "gun to head" / "trigger pull" / "blood splatter" wording → black image (safety filter). Fix: rephrase as aftermath instead of the moment-of.
+
+**Prompts that passed:** severed head, cannibalism, decomposition, parasitic infection, medieval torture, necrophilia/postmortem violation, self-harm/suicide, mass grave/war atrocity, self-mutilation/faceless, demonic possession, Cronenberg body horror, eldritch cosmic horror, occult ritual, anatomical dissection, gothic crypt scene
+
+### Scripts Created
+
+| Script | Purpose |
+|--------|---------|
+| `weird_dark.py` | 5 dark/weird creatures on both Krea 2 and Ideogram 4 (structured JSON) |
+| `weird_edge.py` | 5 gore prompts (decap, cannibal, decomp, parasite, torture) on both |
+| `weird_extreme.py` | 5 extreme gore prompts (necrophilia, self-harm, war, execution, mutilation) |
+| `test_krea2_raw_gore.py` | Krea 2 RAW vs Turbo comparison for gore (RAW failed) |
+| `test_krea2t_enhancer.py` | Krea 2 + Krea2T-Enhancer test (worked — gore rendered) |
+| `run_ideo.py` | Simple reusable API script — edit PROMPTS list at top, run. Auto-wraps as structured JSON |
+
+### Output Directories
+
+| Dir | Contents |
+|-----|----------|
+| `output/Weird_Dark/` | 10 images — 5 Krea 2, 5 Ideogram 4. Gothic/dark fantasy |
+| `output/Weird_Edge/` | 10 images — 5 Krea 2, 5 Ideogram 4. Gore push |
+| `output/Weird_Extreme/` | 10 images — 5 Krea 2 (still tame), 5 Ideogram 4 (graphic except execution) |
+| `output/Weird_Enhanced/` | 4 images — Krea 2 + T-Enhancer. Krea 2 finally rendered gore |
+
+### Workflow Files
+
+| File | Path |
+|------|------|
+| KJ Node Ideogram 4 workflow | `user/default/workflows/c0a2671af7c4.json` |
+| Experiment template (API patching) | `experiment_template.json` |
+
+## Krea 2 Ablation + Absurd Prompt Tests (Jul 6 2026)
+
+### Ablation Setup
+Krea 2 Turbo FP8 + T-Enhancer (0.5) | 1024x1024 | 12 steps, CFG 1.0, euler/beta | Seed 42000001
+
+### What Krea 2 LISTENS To (Stable Diffusion-style prompts)
+| Factor | Impact | Finding |
+|--------|--------|---------|
+| Subject details | HIGH | Every adjective matters. Detailed prompt = exact match |
+| Environment | CRITICAL | Model does NOT auto-fill. Must specify location explicitly |
+| Color/Material | HIGH | "matte black ceramic mug" = exact match. "mug" alone = random |
+| Numbers | HIGH | Counts perfectly (1, 3, 7 apples all correct) |
+| Spatial language | HIGH | "above", "below", "inside", "left of" understood correctly |
+
+### What Krea 2 IGNORES (Stable Diffusion-style prompts)
+| Factor | Impact | Finding |
+|--------|--------|---------|
+| Hype words | ZERO | "masterpiece, 8k, trending, award winning" = identical output |
+| Style keywords | ZERO | "cinematic, photorealistic, highly detailed" = no visible change |
+
+### CRITICAL FINDING: Absurd prompts use DIFFERENT rules
+For absurd/surreal prompts, the working formula is DIFFERENT:
+
+| Finding | Detail |
+|---------|--------|
+| "photorealistic, 8k" HELPS | Ablation said ignore, but prompts WITHOUT these produce weaker absurdity |
+| "A X where Y but Z" structure wins | "An open plan office where every person is typing, but each person's head is a kettle..." |
+| SHORT prompts work better | Fewer details = stronger absurd focus |
+| Color/material DILUTES absurdity | Adding material specs distracts from the surreal core concept |
+| Negative prompt matters | Long negative prompt with "cute, adorable, pleasant, whimsical" helps avoid sanitized output |
+
+### What Krea 2 CAN render (absurd)
+| Concept | Works? | Example |
+|---------|--------|---------|
+| Body part replacement | YES | Kettle-heads, featureless faces |
+| Gore/violence (with T-Enhancer) | YES | Decap, torture, execution |
+| Mirror reflections wrong | YES | Different person in reflection |
+| Wrong objects in scenes | PARTIAL | Some work, some ignored |
+| Object animation/legs | NO | Walking fridge, walking tree ignored |
+| Transparency | NO | Glass torso ignored |
+| Living objects | NO | Cardboard box person, egg with legs |
+| Impossible stretching | NO | Arm through ceiling |
+
+### Absurd Prompt Formula (Proven)
+```
+"A [normal location/scene] where [normal actors], but [one absurd visual thing],
+[lighting], photorealistic, 8k"
+```
+- ALWAYS end with "photorealistic, 8k"
+- Short sentences with "where...but" structure
+- Focus on ONE absurd concept
+- Use T-Enhancer @ 1.0 strength for absurd/gore
+- 20 steps, CFG 1.0, euler/beta
+- Negative MUST include: boring, normal, clean, sanitized, cute, cozy, whimsical
+- Avoid: color/material specs, long location descriptions, multiple absurd elements
+
+### A/B Test Result (office_heads, seed 700)
+| Prompt | Result |
+|--------|--------|
+| A: "where...but, photorealistic, 8k" (weird_dark3 stijl) | **BEST** — clear absurdity |
+| B: "with...but, photorealistic, 8k" (v2 korter) | Less good |
+| A with color/material added | Diluted absurdity |
+
+### Files
+| File | Purpose |
+|------|---------|
+| `ablation_test.py` | Systematic ablation (35 images, 8 suites) |
+| `weird_dark3.py` | WORKING absurd prompts (15 prompts, all rendered OK) |
+| `weird_final.py` | Ollama-based prompt gen pipeline |
+| `weird_ablation.py` | Ablation-optimized prompt gen (needs system prompt fix) |
+| `ABLATION_FINDINGS.md` | Full documentation |
+| `output/Weird_Dark3/` | 15 working absurd images |
+| `output/A_B_Compare/` | A/B test results |
+| `output/Absurd_V3_Winner/` | V3 attempt (incomplete) |
+| `output/ablation_krea2/` | Earlier ablation images |
+
+## Krea-2 Scene Pipeline (Jul 2026)
+
+### Overzicht
+Scene-gebaseerde image generator met uncensored output. Gebruikt OpenRouter (Qwen Coder) voor prompt generatie en ComfyUI API voor rendering.
+
+### Architectuur
+```
+Scene idee → Qwen Coder (OpenRouter) → Krea-2 Prompt → ComfyUI API → PNG output
+```
+
+### Bestanden
+| Bestand | Functie |
+|---------|---------|
+| `krea2_prompt_system.txt` | Prompt Mastery Labs systeem prompt |
+| `krea2_scene_gen.py` | Prompt generator via OpenRouter |
+| `krea2_runner.py` | ComfyUI API workflow runner |
+| `krea2_batch.py` | Batch pipeline script |
+| `scenes_example.txt` | Voorbeeld scenes |
+| `KREA2_PIPELINE.md` | Uitgebreide documentatie |
+
+### Config
+- **OpenRouter**: `qwen/qwen3-coder-next` ($0.11/M, 1.4s, uncensored)
+- **Model**: `redcraft22INT8Convrot_11INT8Native.safetensors` (uncensored fine-tune)
+- **Text Encoder**: `qwen3vl_4b_fp8_scaled.safetensors`
+- **VAE**: `qwen_image_vae.safetensors`
+- **Sampler**: er_sde, 16 steps, CFG 1.0, simple scheduler
+
+### Gebruik
+```bash
+cd ~/ComfyUI
+python3 krea2_batch.py --scene "beschrijving" --steps 16
+python3 krea2_batch.py --scenes scenes_example.txt --orientation portrait
+```
+
+### Prompt Mastery Formaat
+Qwen genereert prompts in dit formaat:
+```
+[Subject + Pose] → [Appearance] → [Props] → [Composition] → [Environment] → [Lighting] → [Aesthetic]
+```
+
+### Output
+- Images: `~/ComfyUI/output/`
+- Prompts: `~/ComfyUI/output/krea2_scenes/scene_XXX_prompt.txt`
+- Log: `~/ComfyUI/output/krea2_scenes/batch_log.json`
+
+### Tweede Model: Ideogram 4
+Voor absurd/surreal content die Krea 2 niet aankan.
+- Model: ideogram4_fp8_scaled + ideogram4_unconditional_fp8_scaled
+- Workflows: Ideogram_4.0_00679_.json, c0a2671af7c4.json
+- Node: Ideogram4PromptBuilderKJ
+- Prompt: Gestructureerd JSON (niet plain text)
+- Stappen: 20, CFG 1.75, euler, beta scheduler
+
+### Skill
+Zie ~/.config/opencode/skills/image-gen/SKILL.md
+
+## Krea 2 Lifelike Test (Jul 7 2026)
+
+### Doel
+De "AI-plastic" look verminderen in Krea 2 output zonder de bestaande Prompt Mastery system prompt te wijzigen.
+
+### Test Setup
+4 variaties, zelfde Qwen-prompt, zelfde seed (42000042), 1024x1024:
+
+| Var | Negatief | T-Enhancer | Steps | Materiaal-woorden |
+|-----|----------|------------|-------|-------------------|
+| A | oud (baseline) | 0.0 | 12 | nee |
+| B | nieuw | 0.0 | 12 | nee |
+| C | nieuw | 0.3 | 12 | nee |
+| D | nieuw | 0.3 | 16 | ja |
+
+### Resultaat
+**Variatie C wint** (gebruiker voorkeur): nieuw negatief + T-Enhancer 0.3 + 12 steps.
+- Oogopslag naturaler dan D (D was iets te "gepolijst" door 16 steps)
+- T-Enhancer @ 0.3 breekt de "tame" Turbo smoothing zonder over-the-top te gaan
+- Negatieve prompt alleen (A vs B) maakt weinig verschil — T-Enhancer is de echte driver
+- Materiaal-woorden helpen, maar moeten niet overdrijven (vermijd "frecles" = AI artifact)
+
+### Wijzigingen Doorgevoerd
+
+**`krea2_runner.py`**:
+- `build_workflow()` krijgt `enhancer_strength` parameter (default 0.3)
+- T-Enhancer node (ComfyUI-Krea2T-Enhancer) wordt tussen UNETLoader en KSampler gevoegd
+- `render_prompt()` stuurt enhancer_strength door
+
+**`krea2_batch.py`**:
+- `run_batch()` krijgt `enhancer` parameter (default 0.3)
+- Nieuwe CLI flag: `--enhancer 0.3` (0.0 = uit, 0.3 = subtiel, 1.0 = sterk)
+
+**`krea2_scene_gen.py`**:
+- Materiaal-woorden guidance toegevoegd aan user_msg (uncensored mode)
+- "frecles" expliciet verboden als AI artifact
+- Aanbevolen alternatieven: "skin pores, fine lines, subtle stubble, natural oil sheen"
+
+**`krea2_prompt_engine.py`**:
+- Negatieve prompt bijgewerkt: "plastic skin, airbrushed, doll-like, symmetrical face, CGI, 3d render, hyperreal, overprocessed" i.p.v. "boring, normal, plain"
+- T-Enhancer default verlaagd van 1.0 naar 0.3
+
+### Gebruik
+```bash
+# Standaard (T-Enhancer 0.3, 12 steps)
+python3 krea2_batch.py --scene "beschrijving"
+
+# Zonder T-Enhancer (oud gedrag)
+python3 krea2_batch.py --scene "beschrijving" --enhancer 0.0
+
+# Sterker (voor absurd/gore)
+python3 krea2_batch.py --scene "beschrijving" --enhancer 1.0
+
+# Losse render via prompt engine
+python3 krea2_prompt_engine.py "concept"
+```
+
+### Output
+- Test images: `~/ComfyUI/output/lifelike_test/`
+- Referentie: `~/Downloads/civitai_scan/{A,B,C,D}_*.png`
+
+## SCAIL-2 Dancing Singer Pipeline (Jul 2026)
+
+### Overview
+SCAIL-2 (SegmAntion-Controlled Animation with In-context Learning, v2) is an end-to-end character animation model built on Wan 2.1 14B. It animates a reference character using a driving video — **no skeleton intermediates**. The model reads driving video latents directly, capturing full visual motion including weight shifts, depth, and non-human movement.
+
+### Key Advantage
+Real motion transfer (1:1 from driving footage) vs. LTX 2.3 I2V's "imagination" of motion. The spinning kick demo on Reddit showed full 360° rotation with character seen from all angles — something I2V struggles with.
+
+### Paper & Sources
+- Paper: https://arxiv.org/abs/2606.10804
+- Project page: https://teal024.github.io/SCAIL-2
+- Comfy-Org repackaged: https://huggingface.co/Comfy-Org/SCAIL-2
+- GGUF quantizations: https://huggingface.co/realrebelai/SCAIL-2_GGUF
+- CivitAI workflow: https://civitai.red/models/2699283/wan-scail-2-segmentation-control
+
+### Models Downloaded (7 Jul 2026)
+
+| Bestand | Grootte | Pad |
+|---------|---------|-----|
+| `SCAIL-2-Q4_K_M.gguf` | 11 GB | `models/unet/` |
+| `sam3.1_multiplex_fp16.safetensors` | 1.7 GB | `models/sam/` |
+| `clip_vision_h.safetensors` | 1.2 GB | `models/clip_vision/` |
+| `lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors` | 704 MB | `models/loras/` |
+
+### Already Available
+- `umt5_xxl_fp8_e4m3fn_scaled.safetensors` (text encoder)
+- `wan_2.1_vae.safetensors` (VAE)
+- `luts/cinematic_bleach_bypass.cube` (LUT)
+- ProPost Apply LUT node, Color Match V2 node
+- SCAIL-2 native nodes (`nodes_scail.py`)
+- Blueprints: "Character Replacement (SCAIL-2 Base)" and "(SCAIL-2 Extend)"
+
+### Architecture
+```
+Driving video → SAM3 segmentatie → colored masks
+Reference image → CLIP Vision encode → reference latent
+    ↓
+WanSCAILToVideo (conditioning)
+    ↓
+UNETLoader (GGUF Q4_K_M) + LightX2V LoRA (0.8)
+    ↓
+KSampler (euler, 12 steps, cfg 3.5)
+    ↓
+VAEDecode → ProPost LUT → ColorMatchV2 → output
+```
+
+### Two Modes
+| Mode | Pose Video Mask BG | Reference Mask BG | Use Case |
+|------|-------------------|-------------------|----------|
+| **Animation** | Zwart | Wit | Zanger animeren met dansende beweging |
+| **Replacement** | Wit | Zwart | Karakter in video vervangen |
+
+**Voor "zanger laat dansen"**: Animation Mode.
+
+### VRAM (16GB RTX 4090)
+Q4_K_M GGUF (~10GB) is de enige optie. GGUF loader is memory-mapped. De CivitAI post creator draait op exact dezelfde config (16GB VRAM + 64GB RAM).
+
+### Settings (Aanbevolen)
+| Parameter | Waarde |
+|-----------|--------|
+| Model | `SCAIL-2-Q4_K_M.gguf` |
+| LoRA | `lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors` (0.8) |
+| Sampler | euler (of SCAIL-2 Infinity — minder kleurshifts) |
+| Steps | 12 |
+| CFG | 3.5 |
+| Resolutie | 832×480 (of 704×1280 portrait) |
+| Frame count | 81 (3.375s @ 24fps) |
+
+### Pipeline Gebruik
+1. **Referentiebeeld**: Krea 2 + singer LoRA (bestaande refs in `input/ref_*.png`)
+2. **Driving footage**: Dansvideo (Pexels/Pixabay stock voor testen)
+3. **SAM3 segmentatie**: `SCAIL2ColoredMask` node
+4. **SCAIL-2 animatie**: `WanSCAILToVideo` node
+5. **Kleurcorrectie**: LUT + ColorMatchV2 (SCAIL-2 heeft kleurverschillen tussen clips)
+
+### Kleurcorrectie
+SCAIL-2 produceert kleurverschillen door driving footage variatie. Twee-lagen aanpak:
+1. Eerst LUT toepassen op alle clips (basis consistency)
+2. Dan ColorMatchV2 van elke clip tegen een master clip
+
+### Driving Footage Eisen
+- Resolutie: 720p (832×480 of 704×1280)
+- Duur: 81 frames @ 24fps = 3.375s per clip
+- Formaat: MP4, MOV
+- Inhoud: Personen met heldere beweging
+- SAM3 moet onderwerp goed kunnen segmenteren
+
+### Beperkingen
+- **Geen audio/lip sync** — LTX 2.3 blijft nodig voor lip-sync scenes
+- **81-frame chunks** — max ~3.375s per clip
+- **Kleurverschillen** — LUT + ColorMatch pipeline essentieel
+- **Driving footage nodig** — kan niet uit het niets animeren
+
+### Compatibiliteit met LTX 2.3 Pipeline
+SCAIL-2 is geen vervanging voor LTX 2.3 lip-sync. Het is een **aanvulling**:
+- **SCAIL-2**: B-roll scenes met complexe beweging (dans, actie)
+- **LTX 2.3**: Lip-sync scenes met audio-conditioning
+- Beide outputten geven door elkaar via `beat_stitch.py`
+
+### Full Plan
+Zie `PLAN_SCAIL2_DANCING_SINGER.md` voor uitgebreide documentatie.
+
+### Bronvermelding
+- Reddit thread: https://www.reddit.com/r/StableDiffusion/comments/1upbu5e/wan_scail2_segmentation_control_update/
+- Gevonden door gebruiker, motion quality was indrukwekkend (spinning kick test)

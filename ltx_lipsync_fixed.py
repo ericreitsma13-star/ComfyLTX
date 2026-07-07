@@ -26,7 +26,8 @@ NEGATIVE_PROMPT = (
 def build_workflow(image_path, audio_path,
                    prompt="",
                    width=960, height=544, fps=24, duration=7.5, seed=42,
-                   lora_strength=0.8, i2v_strength=0.7, cfg=3.5):
+                   lora_strength=0.8, i2v_strength=0.7, cfg=3.5,
+                   singer_lora=0.0):
     fc = int(((duration * fps - 1) / 8) * 8 + 1)
 
     wf = {
@@ -44,6 +45,19 @@ def build_workflow(image_path, audio_path,
                "inputs": {"model": ["10", 0],
                           "lora_name": MODELS["distilled_lora"],
                           "strength_model": lora_strength}},
+    }
+
+    # Optional singer LoRA
+    if singer_lora > 0:
+        wf["21"] = {"class_type": "LoraLoaderModelOnly",
+                    "inputs": {"model": ["20", 0],
+                               "lora_name": "singer_krea2_v1.safetensors",
+                               "strength_model": singer_lora}}
+        model_node = "21"
+    else:
+        model_node = "20"
+
+    wf.update({
         "30": {"class_type": "CLIPTextEncode",
                "inputs": {"text": prompt, "clip": ["13", 0]}},
         "31": {"class_type": "CLIPTextEncode",
@@ -70,7 +84,7 @@ def build_workflow(image_path, audio_path,
         "47": {"class_type": "LTXVSetAudioVideoMaskByTime",
                "inputs": {"av_latent": ["46", 0],
                           "positive": ["32", 0], "negative": ["32", 1],
-                          "model": ["20", 0], "vae": ["11", 0],
+                          "model": [model_node, 0], "vae": ["11", 0],
                           "audio_vae": ["12", 0],
                           "start_time": 0.0, "end_time": float(duration),
                           "video_fps": float(fps),
@@ -83,11 +97,11 @@ def build_workflow(image_path, audio_path,
         "51": {"class_type": "KSamplerSelect",
                "inputs": {"sampler_name": "euler"}},
         "52": {"class_type": "BasicScheduler",
-               "inputs": {"model": ["20", 0],
+               "inputs": {"model": [model_node, 0],
                           "scheduler": "linear_quadratic",
                           "steps": 15, "denoise": 1.0}},
         "53": {"class_type": "CFGGuider",
-               "inputs": {"model": ["20", 0],
+               "inputs": {"model": [model_node, 0],
                           "positive": ["47", 0], "negative": ["47", 1],
                           "cfg": cfg}},
         "54": {"class_type": "SamplerCustomAdvanced",
@@ -114,8 +128,8 @@ def build_workflow(image_path, audio_path,
                           "format": "video/h264-mp4",
                           "pingpong": False, "save_output": True,
                           "crf": 18, "pix_fmt": "yuv420p",
-                          "audio": ["62", 0]}},
-    }
+                           "audio": ["62", 0]}},
+    })
     return wf
 
 
@@ -170,6 +184,7 @@ def main():
     p.add_argument("--duration", type=float, default=7.5)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--lora", type=float, default=0.8)
+    p.add_argument("--singer-lora", type=float, default=0.0, help="singer_krea2_v1 LoRA strength (0=disabled)")
     p.add_argument("--i2v", type=float, default=0.7)
     p.add_argument("--cfg", type=float, default=3.5)
     p.add_argument("--output", default="/home/ericr/ComfyUI/output/ltx_lipsync")
@@ -191,7 +206,7 @@ def main():
     print(f"  Image: {args.image}")
     print(f"  Audio: {args.audio}")
     print(f"  {args.width}x{args.height} @ {args.fps}fps, {args.duration}s")
-    print(f"  LoRA: {args.lora}, I2V: {args.i2v}, CFG: {args.cfg}, Seed: {args.seed}")
+    print(f"  LoRA: {args.lora}, Singer: {args.singer_lora}, I2V: {args.i2v}, CFG: {args.cfg}, Seed: {args.seed}")
     print(f"  Model: Q6_K, Sampler: euler, Scheduler: linear_quadratic, Steps: 15")
     print()
 
@@ -199,6 +214,7 @@ def main():
         args.image, args.audio, args.prompt,
         args.width, args.height, args.fps, args.duration, args.seed,
         args.lora, args.i2v, args.cfg,
+        singer_lora=args.singer_lora,
     )
 
     print("Queuing...")

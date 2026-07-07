@@ -1,0 +1,10 @@
+{
+  "1": { "class_type": "CLIPLoader", "inputs": { "clip_name": "qwen_3_4b.safetensors", "type": "qwen_image" } },
+  "2": { "class_type": "CLIPTextEncode", "inputs": { "text": "young woman with long dark hair, white dress, medium shot chest up facing viewer, misty pine forest path at golden dawn, cinematic, photorealistic, sharp", "clip": ["1", 0] } },
+  "3": { "class_type": "UNETLoader", "inputs": { "unet_name": "z_image_turbo_bf16.safetensors", "weight_dtype": "default" } },
+  "4": { "class_type": "EmptyQwenImageLayeredLatentImage", "inputs": { "width": 960, "height": 544, "layers": 1, "batch_size": 1 } },
+  "5": { "class_type": "VAELoader", "inputs": { "vae_name": "ae.safetensors" } },
+  "6": { "class_type": "KSampler", "inputs": { "model": ["3", 0], "positive": ["2", 0], "negative": ["2", 0], "latent_image": ["4", 0], "seed": 100, "steps": 4, "cfg": 1.5, "sampler_name": "euler", "scheduler": "normal", "denoise": 1.0 } },
+  "7": { "class_type": "VAEDecode", "inputs": { "vae": ["5", 0], "samples": ["6", 0] } },
+  "8": { "class_type": "SaveImage", "inputs": { "images": ["7", 0], "filename_prefix": "z_ref" } }
+}

@@ -1,0 +1,1209 @@
+{
+  "last_node_id": 71,
+  "last_link_id": 34,
+  "nodes": [
+    {
+      "id": 10,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "ltx-2.3-22b-distilled-1.1.safetensors"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "VAELoader",
+      "pos": [
+        0,
+        200
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ltx-2.3-22b-distilled_video_vae.safetensors"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "LTXVAudioVAELoader",
+      "pos": [
+        0,
+        400
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVAudioVAELoader"
+      },
+      "widgets_values": [
+        "ltx-2.3-22b-distilled-1.1.safetensors"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "LTXAVTextEncoderLoader",
+      "pos": [
+        0,
+        600
+      ],
+      "size": [
+        400,
+        150
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXAVTextEncoderLoader"
+      },
+      "widgets_values": [
+        "gemma_3_12B_it_fp4_mixed.safetensors",
+        "ltx-2.3-22b-distilled-1.1.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        400,
+        0
+      ],
+      "size": [
+        350,
+        100
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "any",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "ltx-2.3-22b-distilled-lora-384-1.1.safetensors",
+        0.8
+      ]
+    },
+    {
+      "id": 30,
+      "type": "CLIPTextEncode",
+      "pos": [
+        400,
+        500
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "any",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "young woman with long dark hair white dress, medium shot facing viewer chest up, singing on misty pine forest path at golden dawn, sharp, cinematic, photorealistic, detailed"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "CLIPTextEncode",
+      "pos": [
+        400,
+        700
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "any",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "headshot, close up, portrait, from behind, back view, ugly, deformed, blurry, low quality, cartoon"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "LTXVConditioning",
+      "pos": [
+        700,
+        600
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "any",
+          "link": 4
+        },
+        {
+          "name": "negative",
+          "type": "any",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVConditioning"
+      },
+      "widgets_values": [
+        24.0
+      ]
+    },
+    {
+      "id": 40,
+      "type": "LoadImage",
+      "pos": [
+        400,
+        200
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "ref_medium_shot.png"
+      ]
+    },
+    {
+      "id": 41,
+      "type": "LoadAudio",
+      "pos": [
+        400,
+        900
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "vocals_4s.wav"
+      ]
+    },
+    {
+      "id": 42,
+      "type": "LTXVAudioVAEEncode",
+      "pos": [
+        700,
+        900
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "any",
+          "link": 6
+        },
+        {
+          "name": "audio_vae",
+          "type": "any",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVAudioVAEEncode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 43,
+      "type": "EmptyLTXVLatentVideo",
+      "pos": [
+        700,
+        300
+      ],
+      "size": [
+        350,
+        150
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLTXVLatentVideo"
+      },
+      "widgets_values": [
+        832,
+        480,
+        89,
+        1
+      ]
+    },
+    {
+      "id": 44,
+      "type": "LTXVImgToVideoInplace",
+      "pos": [
+        1000,
+        250
+      ],
+      "size": [
+        400,
+        120
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "vae",
+          "type": "any",
+          "link": 8
+        },
+        {
+          "name": "image",
+          "type": "any",
+          "link": 9
+        },
+        {
+          "name": "latent",
+          "type": "any",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVImgToVideoInplace"
+      },
+      "widgets_values": [
+        0.7,
+        false
+      ]
+    },
+    {
+      "id": 46,
+      "type": "LTXVConcatAVLatent",
+      "pos": [
+        1300,
+        600
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video_latent",
+          "type": "any",
+          "link": 11
+        },
+        {
+          "name": "audio_latent",
+          "type": "any",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVConcatAVLatent"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 47,
+      "type": "LTXVSetAudioVideoMaskByTime",
+      "pos": [
+        1600,
+        500
+      ],
+      "size": [
+        500,
+        200
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "av_latent",
+          "type": "any",
+          "link": 13
+        },
+        {
+          "name": "positive",
+          "type": "any",
+          "link": 14
+        },
+        {
+          "name": "negative",
+          "type": "any",
+          "link": 15
+        },
+        {
+          "name": "model",
+          "type": "any",
+          "link": 16
+        },
+        {
+          "name": "vae",
+          "type": "any",
+          "link": 17
+        },
+        {
+          "name": "audio_vae",
+          "type": "any",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVSetAudioVideoMaskByTime"
+      },
+      "widgets_values": [
+        0.0,
+        4.0,
+        24.0,
+        true,
+        false,
+        0.0,
+        0.0,
+        3
+      ]
+    },
+    {
+      "id": 50,
+      "type": "RandomNoise",
+      "pos": [
+        700,
+        0
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        70
+      ]
+    },
+    {
+      "id": 51,
+      "type": "KSamplerSelect",
+      "pos": [
+        700,
+        100
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSamplerSelect"
+      },
+      "widgets_values": [
+        "euler"
+      ]
+    },
+    {
+      "id": 52,
+      "type": "BasicScheduler",
+      "pos": [
+        1000,
+        0
+      ],
+      "size": [
+        400,
+        150
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "any",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicScheduler"
+      },
+      "widgets_values": [
+        "linear_quadratic",
+        15,
+        1.0
+      ]
+    },
+    {
+      "id": 53,
+      "type": "CFGGuider",
+      "pos": [
+        1300,
+        0
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "any",
+          "link": 20
+        },
+        {
+          "name": "positive",
+          "type": "any",
+          "link": 21
+        },
+        {
+          "name": "negative",
+          "type": "any",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CFGGuider"
+      },
+      "widgets_values": [
+        3.0
+      ]
+    },
+    {
+      "id": 54,
+      "type": "SamplerCustomAdvanced",
+      "pos": [
+        1600,
+        0
+      ],
+      "size": [
+        400,
+        120
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "any",
+          "link": 23
+        },
+        {
+          "name": "guider",
+          "type": "any",
+          "link": 24
+        },
+        {
+          "name": "sampler",
+          "type": "any",
+          "link": 25
+        },
+        {
+          "name": "sigmas",
+          "type": "any",
+          "link": 26
+        },
+        {
+          "name": "latent_image",
+          "type": "any",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 60,
+      "type": "LTXVSeparateAVLatent",
+      "pos": [
+        1900,
+        400
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "av_latent",
+          "type": "any",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVSeparateAVLatent"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 61,
+      "type": "LTXVSpatioTemporalTiledVAEDecode",
+      "pos": [
+        2200,
+        300
+      ],
+      "size": [
+        500,
+        150
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "vae",
+          "type": "any",
+          "link": 29
+        },
+        {
+          "name": "latents",
+          "type": "any",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVSpatioTemporalTiledVAEDecode"
+      },
+      "widgets_values": [
+        2,
+        4,
+        16,
+        4,
+        false,
+        "auto",
+        "auto"
+      ]
+    },
+    {
+      "id": 62,
+      "type": "LTXVAudioVAEDecode",
+      "pos": [
+        2200,
+        600
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "any",
+          "link": 31
+        },
+        {
+          "name": "audio_vae",
+          "type": "any",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTXVAudioVAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 70,
+      "type": "CreateVideo",
+      "pos": [
+        2500,
+        300
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "any",
+          "link": 33
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CreateVideo"
+      },
+      "widgets_values": [
+        24.0
+      ]
+    },
+    {
+      "id": 71,
+      "type": "SaveVideo",
+      "pos": [
+        2800,
+        300
+      ],
+      "size": [
+        350,
+        150
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "any",
+          "link": 34
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "any",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "ltx_mv",
+        "mp4",
+        "h264"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      "10",
+      0,
+      20,
+      0,
+      "any"
+    ],
+    [
+      2,
+      "13",
+      0,
+      30,
+      0,
+      "any"
+    ],
+    [
+      3,
+      "13",
+      0,
+      31,
+      0,
+      "any"
+    ],
+    [
+      4,
+      "30",
+      0,
+      32,
+      0,
+      "any"
+    ],
+    [
+      5,
+      "31",
+      0,
+      32,
+      1,
+      "any"
+    ],
+    [
+      6,
+      "41",
+      0,
+      42,
+      0,
+      "any"
+    ],
+    [
+      7,
+      "12",
+      0,
+      42,
+      1,
+      "any"
+    ],
+    [
+      8,
+      "11",
+      0,
+      44,
+      0,
+      "any"
+    ],
+    [
+      9,
+      "40",
+      0,
+      44,
+      1,
+      "any"
+    ],
+    [
+      10,
+      "43",
+      0,
+      44,
+      2,
+      "any"
+    ],
+    [
+      11,
+      "44",
+      0,
+      46,
+      0,
+      "any"
+    ],
+    [
+      12,
+      "42",
+      0,
+      46,
+      1,
+      "any"
+    ],
+    [
+      13,
+      "46",
+      0,
+      47,
+      0,
+      "any"
+    ],
+    [
+      14,
+      "32",
+      0,
+      47,
+      1,
+      "any"
+    ],
+    [
+      15,
+      "32",
+      1,
+      47,
+      2,
+      "any"
+    ],
+    [
+      16,
+      "20",
+      0,
+      47,
+      3,
+      "any"
+    ],
+    [
+      17,
+      "11",
+      0,
+      47,
+      4,
+      "any"
+    ],
+    [
+      18,
+      "12",
+      0,
+      47,
+      5,
+      "any"
+    ],
+    [
+      19,
+      "20",
+      0,
+      52,
+      0,
+      "any"
+    ],
+    [
+      20,
+      "20",
+      0,
+      53,
+      0,
+      "any"
+    ],
+    [
+      21,
+      "47",
+      0,
+      53,
+      1,
+      "any"
+    ],
+    [
+      22,
+      "47",
+      1,
+      53,
+      2,
+      "any"
+    ],
+    [
+      23,
+      "50",
+      0,
+      54,
+      0,
+      "any"
+    ],
+    [
+      24,
+      "53",
+      0,
+      54,
+      1,
+      "any"
+    ],
+    [
+      25,
+      "51",
+      0,
+      54,
+      2,
+      "any"
+    ],
+    [
+      26,
+      "52",
+      0,
+      54,
+      3,
+      "any"
+    ],
+    [
+      27,
+      "47",
+      2,
+      54,
+      4,
+      "any"
+    ],
+    [
+      28,
+      "54",
+      0,
+      60,
+      0,
+      "any"
+    ],
+    [
+      29,
+      "11",
+      0,
+      61,
+      0,
+      "any"
+    ],
+    [
+      30,
+      "60",
+      0,
+      61,
+      1,
+      "any"
+    ],
+    [
+      31,
+      "60",
+      1,
+      62,
+      0,
+      "any"
+    ],
+    [
+      32,
+      "12",
+      0,
+      62,
+      1,
+      "any"
+    ],
+    [
+      33,
+      "61",
+      0,
+      70,
+      0,
+      "any"
+    ],
+    [
+      34,
+      "70",
+      0,
+      71,
+      0,
+      "any"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}
